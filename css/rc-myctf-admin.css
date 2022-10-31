@@ -1,0 +1,15 @@
+/*
+Used to style the admin interface of the My Custom Twitter Feed plugin.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 4 Oct, 2019, 12:36:27 PM
+    Author     : Ray Creations
+*/
+
+.rc_myctf_tip {
+    color: #999;
+    margin-left: 10px;
+    font-style: italic;
+}
