@@ -61,12 +61,13 @@ class Rc_Myctf_Tweets {
             $raw_tweets = $rc_myctf_cache->rc_myctf_get_cache( $id );
 
         }
-        
+        //print_r($raw_tweets);
+        //wp_die();
         /*
          * Check if $raw_tweets === false, then return false
          * Or check whether $raw_tweets is an object of WP Error class
          */
-        if ( $raw_tweets === FALSE || is_wp_error( $raw_tweets ) ) {
+        if ( $raw_tweets === FALSE || is_wp_error( $raw_tweets ) || Rc_Myctf_Tweets::rc_myctf_tweets_contain_error_message( $raw_tweets ) ) {
             return FALSE;
         }
         
@@ -177,6 +178,11 @@ class Rc_Myctf_Tweets {
         /* If there was an error, return false */
         if ( $merged_atts_options == FALSE ) {
             return FALSE;
+        }
+        
+        /* Restricting count to 10 only for Free version */
+        if ( $merged_atts_options[ 'count' ] > 10 ) {
+            $merged_atts_options[ 'count' ] = 10;
         }
         
         /* Retrieve options from merged attributes & options variable */
@@ -303,5 +309,24 @@ class Rc_Myctf_Tweets {
         return $hashtags;
     }
     
+    
+    
+    /*
+     * Ensures received Tweets do no contain any error messages.
+     * Returns false on error
+     * 
+     * @since 1.0
+     * @access public
+     * 
+     * @param object    @tweets object  Tweet object
+     * @return boolean    True | False  Returns either true or false
+     */
+    public static function rc_myctf_tweets_contain_error_message( $tweets ) {
+        if ( isset( $tweets->errors ) ) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    }//ends rc_myctf_ensure_tweets_do_not_contain_error_message
     
 }//ends class

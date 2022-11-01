@@ -97,7 +97,8 @@ class Rc_Myctf {
     public static function rc_myctf_render_shortcode( $atts ){
         
         /* Before any action takes place we need to check if  */
-        $key_status = Rc_Myctf::rc_myctf_check_api_keys();
+        //$key_status = Rc_Myctf::rc_myctf_check_api_keys();
+        $key_status = TRUE;
         
         if ( $key_status === FALSE ) {
             
@@ -538,7 +539,7 @@ class Rc_Myctf {
         $user = $tweet->{ 'user' };
         
         /* this is the profile image */
-        $html = "<img src='" . $user->{ 'profile_image_url' } . "' alt='" . $user->{ 'name' } . "' class='twitter_profile_img' />";
+        $html = "<img src='" . $user->{ 'profile_image_url_https' } . "' alt='" . $user->{ 'name' } . "' class='twitter_profile_img' />";
         
         /* the remaining header starts here */
         $html .= "<div class='twitter_header_meta'>";
@@ -1015,7 +1016,7 @@ class Rc_Myctf {
         $options_settings = get_option( 'rc_myctf_settings_options' );
         $consumer_key = isset( $options_settings[ 'consumer_key' ] ) ? wp_strip_all_tags( $options_settings[ 'consumer_key' ] ) : '';
         $consumer_secret = isset( $options_settings[ 'consumer_secret' ] ) ? wp_strip_all_tags( $options_settings[ 'consumer_secret' ] ) : '';
-        $bearer_token = isset( $options_settings[ 'bearer_token' ] ) ? wp_strip_all_tags( $options_settings[ 'bearer_token' ] ) : '';
+        $bearer_token = isset( $options_settings[ 'bearer_token' ] ) ? sanitize_text_field( $options_settings[ 'bearer_token' ] ) : '';
         
         /* If bearer token is already generated, return true */
         if ( $bearer_token ) {

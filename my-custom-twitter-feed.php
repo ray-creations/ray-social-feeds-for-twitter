@@ -4,7 +4,7 @@
  * Plugin Name: Ray Social Feeds For Twitter
  * Plugin URI: https://www.raycreations.net/my-custom-twitter-feed/
  * Description: Display beautiful twitter feeds on your website.
- * Version: 1.0
+ * Version: 1.1
  * Author: Ray Creations
  * Author URI: https://www.raycreations.net
  * License: GPLv2 or later
@@ -58,6 +58,9 @@ add_action( 'admin_enqueue_scripts', 'rc_myctf_enqueue_admin_scripts' );
 /* Enqueue function to load plugin textdomain */
 add_action( 'init', 'rc_myctf_load_textdomain' );
 
+/* Function to store plugin data in transient */
+add_action( 'admin_init', 'rc_myctf_store_plugin_data_in_transient' );
+add_action( 'admin_enqueue_scripts', 'rc_myctf_store_plugin_base_in_plugin_data_array' );
 
 /**
  * Include classes required by this plugin
@@ -184,7 +187,7 @@ function rc_myctf_plugin_activation(){
 * @return void
 */
 function rc_myctf_plugin_deactivation(){
-
+    delete_option('rc_myctf_settings_options');
 }
 
 
@@ -265,5 +268,44 @@ function rc_myctf_load_textdomain() {
     /* Loads the translation for the plugin. */
     if ( !is_admin() ) {
         load_plugin_textdomain( 'my-custom-twitter-feed', false, RC_MYCTF_DIR . 'languages' );
+    }
+}
+
+/*
+ * Stores plugin data in transient 'plugin_data' as an array
+ */
+function rc_myctf_store_plugin_data_in_transient() {
+    /** Get $plugin_data array from transient */
+    $plugin_data = get_transient( 'plugin_data' );
+    
+    /* if $plugin_data array is empty */
+    if (is_admin() && $plugin_data === FALSE ) {
+        $plugin_data = get_plugin_data( __FILE__ );
+        set_transient( 'plugin_data', $plugin_data, 86400 );
+    }
+    
+}//ends rc_myctf_store_plugin_data_in_transient
+
+
+/*
+ * Storing plugin_base (screen_name) in $plugin_data array
+ * $plugin_data is stored in transient
+ */
+function rc_myctf_store_plugin_base_in_plugin_data_array() {
+    /** Get $plugin_data array from transient */
+    $plugin_data = get_transient( 'plugin_data' );
+    
+    if ( $plugin_data !== FALSE && !isset( $plugin_data[ 'plugin_base' ] ) ) {
+        /* fetch current page name */
+        $current_screen = get_current_screen();
+        
+        //if $current_screen has the plugin page name
+        if (strpos( $current_screen->base, 'myctf-page' ) !== false ) {
+            
+            $plugin_data[ 'plugin_base' ] = sanitize_text_field( $current_screen->base );
+           
+            /* save the transient data to plugin again */
+            set_transient( 'plugin_data', $plugin_data, 86400 );
+        }
     }
 }

@@ -176,11 +176,13 @@ class Rc_Myctf_Cache {
                     delete_transient( $transient_name );
                 }
                 
-            }
+            }//ends foreach
             
-        }
+            return true;
+            
+        }//end if
         
-    }
+    }//ends rc_myctf_delete_tweets_transient
     
     
     

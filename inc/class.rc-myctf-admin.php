@@ -65,7 +65,13 @@ class Rc_Myctf_Admin {
         //add_action( 'admin_menu', array( 'Rc_Myctf_Admin', 'rc_myctf_check_if_token_should_be_invalidated' ) );
         
         /* Function checks if Consumer key & secret are present. If not, displays an admin notice */
-        add_action( 'admin_head', array( 'Rc_Myctf_Admin', 'rc_myctf_show_admin_notice_for_no_keys' ) );
+        //add_action( 'admin_head', array( 'Rc_Myctf_Admin', 'rc_myctf_show_admin_notice_for_no_keys' ) );
+        
+        /* Deletes the current bearer token */
+        add_action( 'admin_menu', array( 'Rc_Myctf_Admin', 'rc_myctf_delete_bearer_token' ) );
+        
+        /* Deletes the tweets stored in transient */
+        add_action( 'admin_menu', array( 'Rc_Myctf_Admin', 'rc_myctf_delete_cached_tweets' ) );
         
     }//ends init_hooks
     
@@ -563,8 +569,9 @@ class Rc_Myctf_Admin {
         
         //delete stored tweets from transient
         $rc_myctf_cache = new Rc_Myctf_Cache();
-        $rc_myctf_cache->rc_myctf_delete_tweets_transient();
+        $status = $rc_myctf_cache->rc_myctf_delete_tweets_transient();
         
+        return $status;
         
     }//ends rc_myctf_delete_tweets_from_transient
     
@@ -692,5 +699,119 @@ class Rc_Myctf_Admin {
     }//ends rc_myctf_show_admin_notice_for_no_keys
     
     
+    
+    /**
+     * Upon clicking the button to delete bearer token, it deletes the current
+     * bearer token.
+     * 
+     * @since 1.0
+     * @access public
+     */
+    public static function rc_myctf_delete_bearer_token() {
+        
+        if ( !isset( $_REQUEST[ 'rc_myctf_action_bearer' ] ) ){
+            return;
+        }
+        
+        if ( !current_user_can( 'manage_options' ) ) {
+            wp_die( 'Insufficient privileges' );
+        }
+        
+        $action = wp_strip_all_tags( $_REQUEST[ 'rc_myctf_action_bearer' ] );
+        
+        
+        if ( $action == 'deleted_bearer_token' ) {
+            add_action( 'admin_notices', array( 'Rc_Myctf_Notices', 'rc_myctf_admin_notice__success' ) );
+            return;
+        } else if ( $action == 'error' ) {
+            add_action( 'admin_notices', array( 'Rc_Myctf_Notices', 'rc_myctf_admin_notice__error' ) );
+            return;
+        }
+        
+        check_admin_referer( 'rc_myctf-' . $action . '_bearer-token' );
+        
+        //ensure bearer token is not empty
+        $options = get_option( 'rc_myctf_settings_options' );
+        $bearer_token = isset( $options[ 'bearer_token' ] ) ? sanitize_text_field( $options[ 'bearer_token' ] ) : '';
+        
+        if ( empty( $bearer_token ) ) {
+            return;
+        }
+        
+        /* initially set $result = false. If successfully deleted bearer token, then set it to $result = True */
+        $result = FALSE;
+            
+        /* check the $action parameter. And also check that at least 24 hours have elapsed since last token invalidation */
+
+            
+        //If $result is TRUE
+        if ( $action == 'delete_bearer_token' ) {
+
+        $options[ 'bearer_token' ] = '';
+        $result = update_option( 'rc_myctf_settings_options', $options );
+        $admin_url = admin_url( 'options-general.php?page=myctf-page' );
+        
+            //if $result is TRUE
+            if ( $result ) {
+                wp_redirect( add_query_arg( array( 'rc_myctf_action_bearer' => 'deleted_bearer_token' ), $admin_url ) );
+            } else {
+                wp_redirect( add_query_arg( array( 'rc_myctf_action_bearer' => 'error' ), $admin_url ) );
+            }
+        }//end if
+  
+    }//ends rc_myctf_delete_bearer_token
+    
+    
+    
+    /*
+     * Deletes the cached Tweets when one clicks on the "Delete Cached Tweets" button
+     * in the admin panel
+     * 
+     * @since 1.1
+     * @access public
+     */
+    public static function rc_myctf_delete_cached_tweets() {
+        
+        /* check if 'rc_myctf_action_cache' is set, if not return */
+        if ( !isset( $_REQUEST[ 'rc_myctf_action_cache' ] ) ){ return; }
+        
+        /* check if current user has sufficient privileges, otherwise, tell WordPress to die */
+        if ( !current_user_can( 'manage_options' ) ) { wp_die( 'Insufficient privileges' ); }
+        
+        /* Extract the value of 'rc_myctf_action_cache' */
+        $action = wp_strip_all_tags( $_REQUEST[ 'rc_myctf_action_cache' ] );
+        
+        
+        if ( $action == 'deleted_cached_tweets' ) {
+            add_action( 'admin_notices', array( 'Rc_Myctf_Notices', 'rc_myctf_admin_notice__success' ) );
+            return;
+        } else if ( $action == 'error' ) {
+            add_action( 'admin_notices', array( 'Rc_Myctf_Notices', 'rc_myctf_admin_notice__error' ) );
+            return;
+        }
+        
+        check_admin_referer( 'rc_myctf-' . $action . '_cache' );
+        
+        $result = FALSE;
+            
+        //check that action equals 'delete_cached_tweets'
+        if ( $action == 'delete_cached_tweets' ) {
+
+        //delete cached tweets
+        $result = Rc_Myctf_Admin::rc_myctf_delete_tweets_from_transient();
+        
+        /* url of our plugin page */
+        $admin_url = admin_url( 'options-general.php?page=myctf-page' );
+        
+            //if $result is TRUE
+            if ( $result ) {
+                wp_redirect( add_query_arg( array( 'rc_myctf_action_cache' => 'deleted_cached_tweets' ), $admin_url ) );
+            } else {
+                wp_redirect( add_query_arg( array( 'rc_myctf_action_cache' => 'error' ), $admin_url ) );
+            }
+        }//end if
+        
+    }//ends rc_myctf_delete_cached_tweets
+
     
 }// ends class

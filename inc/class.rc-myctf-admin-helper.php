@@ -26,10 +26,42 @@ class Rc_Myctf_Admin_Helper {
      */
     public static function rc_myctf_api_section_callback(){
         
+        /* Get options to check if bearer token exists */
+        //$settings_options = get_option( 'rc_myctf_settings_options' );
+        //$bearer_token = isset( $settings_options[ 'bearer_token' ] ) ? sanitize_text_field( $settings_options[ 'bearer_token' ] ) : '';
         
-        $html = 'Note: You need to <a href="https://www.raycreations.net/generating-twitter-api-keys/" title="create a Twitter app" target="_blank" rel="noopener">create a Twitter app</a> to obtain the API keys & secret needed for this plugin to fetch tweets for you &#128522;<br><br>';
+        /* url of our plugin page */
+        $admin_url = admin_url( 'options-general.php?page=myctf-page' );
         
-        $html .= '<hr><br>Please enter your consumer key and consumer secret below:<br><br>';
+        $html = '';
+        
+        //if ( !empty( $bearer_token ) ) {
+            
+            /* Creating the button & link for bearer token deletion */
+            //$rc_myctf_action_bearer = 'delete_bearer_token';
+            
+            /* construct url with query strings */
+            //$delete_token_url = add_query_arg( array( 'rc_myctf_action_bearer' => $rc_myctf_action_bearer ), $admin_url );
+            //$nonced_delete_bearer_token_url = wp_nonce_url( $delete_token_url, 'rc_myctf-' . $rc_myctf_action_bearer . '_bearer-token');
+            
+            //$html .= '<div id="bearer-token-delete-div">';
+            //$html .= '<p><br><a href="' . $nonced_delete_bearer_token_url . '" id="rc_myctf_delete_token">Delete Current Bearer Token</a></p>';
+            //$html .= '</div>';
+        //}
+        
+        /* Creating the button & link for cached tweets deletion */
+        $rc_myctf_action_cache = 'delete_cached_tweets';
+        $delete_cache_url = add_query_arg( array( 'rc_myctf_action_cache' => $rc_myctf_action_cache ), $admin_url );
+        $nonced_delete_cache_url = wp_nonce_url( $delete_cache_url, 'rc_myctf-' . $rc_myctf_action_cache . '_cache' );
+        
+        $html .= '<div id="bearer-token-delete-div">';
+        $html .= '<p><br><a href="' . $nonced_delete_cache_url . '" id="rc_myctf_delete_cache">Delete Cached Tweets</a></p>';
+        $html .= '</div>';
+        
+        $html .= '<div id="consumer-key-info-div"><p><br><hr>';
+        $html .= '<strong>Note (optional)</strong>: You can <a href="https://www.raycreations.net/generating-twitter-api-keys/" title="create a Twitter app" target="_blank" rel="noopener">create your own Twitter app</a> to obtain your own API keys & secret needed for this plugin to fetch tweets &#128522;<br><br>';
+        $html .= 'Please enter your consumer key and consumer secret below:<br><br>';
+        $html .= '</p></div>';
         echo $html;
     }
     
@@ -341,10 +373,16 @@ class Rc_Myctf_Admin_Helper {
      * Functions & callbacks for the "Need Help?" section of the Support tab
      */
     public static function rc_myctf_api_support_settings_section_callback(){
-        $html = "";
-        $html .= "Need support with this plugin?<br>";
-        $html .= "Please email us at support[@]raycreations.net<br><br><br>";
-        $html .= "<p>Do provide as much detail as you can so that we can resolve the issues faster.</p>";
+        $html = '';
+        $html .= 'Need support with this plugin?<br>';
+        $html .= 'Please email us at support[@]raycreations.net<br><br>';
+        $html .= '<p>Do provide as much detail as you can so that we can resolve the issues faster.</p><br>';
+        $html .= '<strong>List of example Shortcodes:</strong><br>';
+        $html .= '[my_custom_tweets]<br>';
+        $html .= '[my_custom_tweets count="3"]<br>';
+        $html .= '[my_custom_tweets feed_type="user_timeline" screen_name="MySwitzerlandIN"]<br>';
+        $html .= '[my_custom_tweets feed_type="hashtags_timeline" hashtags="nature photography"]<br>';
+        $html .= '[my_custom_tweets count="3" exclude_replies="true" include_rts="false"]<br>';
         
         echo $html;
     }
