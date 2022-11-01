@@ -25,6 +25,39 @@ class Rc_Myctf_Admin {
      */
     private static $initiated = false;
     
+    
+    /**
+     * Values for fontSizes
+     * @since 1.2.1
+     * @var array
+     */
+    public static $fontSizes = array();
+    
+    
+    /**
+     * Values for font size in percentages
+     * @since 1.2.1
+     * @var array
+     */
+    public static $fontPercents = array();
+   
+    
+    /**
+     * Values for font weight
+     * @since 1.2.1
+     * @var array
+     */
+    public static $fontWeights = array();
+   
+    
+    /**
+     * Values for Text Decorations
+     * @since 1.2.1
+     * @var array
+     */
+    public static $textDecorations = array();
+   
+    
  
     /**
      * Check whether the Class has been initialized
@@ -55,6 +88,15 @@ class Rc_Myctf_Admin {
         /**  This creates the Customize section & fields for the main settings page above  */
         add_action( 'admin_init', array( 'Rc_Myctf_Admin', 'rc_myctf_create_customize_sections_fields' ) );
         
+        /** This creates the Tweets section & fields for the Tweets tab */
+        add_action( 'admin_init', array( 'Rc_Myctf_Admin', 'rc_myctf_create_tweets_section_fields' ) );
+        
+        /** This creates the Tweets section & fields for the Tweets tab */
+        add_action( 'admin_init', array( 'Rc_Myctf_Admin', 'rc_myctf_create_style_section_fields' ) );
+        
+        /** This creates the sections & fields for the 'Slider/Carousel' tab in settings page  */
+        add_action( 'admin_init', array( 'Rc_Myctf_Admin', 'rc_myctf_create_slider_carousel_section_fields' ) );
+        
         /**  This creates the Support section & fields for the main settings page above  */
         add_action( 'admin_init', array( 'Rc_Myctf_Admin', 'rc_myctf_create_support_sections_fields' ) );
         
@@ -64,11 +106,17 @@ class Rc_Myctf_Admin {
         /* Function checks if Consumer key & secret are present. If not, displays an admin notice */
         //add_action( 'admin_head', array( 'Rc_Myctf_Admin', 'rc_myctf_show_admin_notice_for_no_keys' ) );
         
+        /* Resets the options to their default state */
+        add_action( 'admin_menu', array( 'Rc_Myctf_Admin', 'rc_myctf_handle_reset_options_request' ) );
+        
         /* Deletes the tweets stored in transient */
         add_action( 'admin_menu', array( 'Rc_Myctf_Admin', 'rc_myctf_delete_cached_tweets' ) );
         
         /* Fetches tokens from Twitter (Twitter OAuth) */
         add_action( 'admin_menu', array( 'Rc_Myctf_Admin', 'rc_myctf_fetch_access_tokens_from_twitter' ) );
+        
+        /* Generates and stores the arrays needed by other functions like font_size etc. */
+        add_action( 'admin_init', array( 'Rc_Myctf_Admin', 'rc_myctf_generate_required_arrays' ) );
         
     }//ends init_hooks
     
@@ -119,7 +167,10 @@ class Rc_Myctf_Admin {
             ?>
                 <h2 class="nav-tab-wrapper">
                     <a href="?page=myctf-page&tab=settings" class="nav-tab <?php echo $active_tab == 'settings' ? 'nav-tab-active' : ''; ?>">Settings</a>
-                    <a href="?page=myctf-page&tab=customize" class="nav-tab <?php echo $active_tab == 'customize' ? 'nav-tab-active' : ''; ?>">Customize</a>
+                    <a href="?page=myctf-page&tab=customize" class="nav-tab <?php echo $active_tab == 'customize' ? 'nav-tab-active' : ''; ?>">Customize Feed</a>
+                    <a href="?page=myctf-page&tab=tweets" class="nav-tab <?php echo $active_tab == 'tweets' ? 'nav-tab-active' : ''; ?>">Tweets (Show/Hide)</a>
+                    <a href="?page=myctf-page&tab=style" class="nav-tab <?php echo $active_tab == 'style' ? 'nav-tab-active' : ''; ?>">Style</a>
+                    <a href="?page=myctf-page&tab=slider" class="nav-tab <?php echo $active_tab == 'slider' ? 'nav-tab-active' : ''; ?>">Slider/Carousel</a>
                     <a href="?page=myctf-page&tab=support" class="nav-tab <?php echo $active_tab == 'support' ? 'nav-tab-active' : ''; ?>">Support</a>
                 </h2>
 
@@ -173,9 +224,114 @@ class Rc_Myctf_Admin {
                 <p class="submit">
                     <input name="Submit" class="button-primary" type="submit" value="Save Changes" />
                 </p>
+                
+                <?php
+                do_settings_sections( 'rc_myctf_customize_links_page' );     // should match the section name
+                ?>
+
+                <p class="submit">
+                    <input name="Submit" class="button-primary" type="submit" value="Save Changes" />
+                </p>
 
                 <?php
+            }else if ( $active_tab == 'tweets' ){
+                
+                settings_fields( 'rc_myctf_tweets_options' );            // should match with the option name
+                do_settings_sections( 'rc_myctf_tweets_general_page' );     // should match the section name
+                ?>
 
+                <p class="submit">
+                    <input name="Submit" class="button-primary" type="submit" value="Save Changes" />
+                </p>
+                
+                <?php
+                do_settings_sections( 'rc_myctf_tweets_header_page' );   // page name
+                ?>
+                
+                <p class="submit">
+                    <input name="Submit" class="button-primary" type="submit" value="Save Changes" />
+                </p>
+                <hr>
+                
+                <?php
+                do_settings_sections( 'rc_myctf_tweets_footer_page' );     // should match the section name
+                ?>
+
+                <p class="submit">
+                    <input name="Submit" class="button-primary" type="submit" value="Save Changes" />
+                </p>
+                
+                <?php
+            }else if ( $active_tab == 'style' ){
+                
+                settings_fields( 'rc_myctf_style_options' );            // should match with the option name
+                do_settings_sections( 'rc_myctf_style_general_page' );   // page name
+                ?>
+                
+                <p class="submit">
+                    <input name="Submit" class="button-primary" type="submit" value="Save Changes" />
+                </p>
+                <hr>
+                
+                <?php
+                do_settings_sections( 'rc_myctf_style_header_page' );   // page name
+                ?>
+                
+                <p class="submit">
+                    <input name="Submit" class="button-primary" type="submit" value="Save Changes" />
+                </p>
+                <hr>
+                
+                <?php
+                do_settings_sections( 'rc_myctf_style_tweet_page' );   // page name
+                ?>
+                
+                <p class="submit">
+                    <input name="Submit" class="button-primary" type="submit" value="Save Changes" />
+                </p>
+                <hr>
+                
+                <?php
+                do_settings_sections( 'rc_myctf_style_footer_page' );   // page name
+                ?>
+                
+                <p class="submit">
+                    <input name="Submit" class="button-primary" type="submit" value="Save Changes" />
+                </p>
+                <hr>
+                
+                
+                <?php
+            }else if ( $active_tab == 'slider' ){
+                
+                settings_fields( 'rc_myctf_slider_carousel_options' );              // should match with the option name
+                do_settings_sections( 'rc_myctf_slider_carousel_general_page' );    // page name
+                ?>
+                
+                <p class="submit">
+                    <input name="Submit" class="button-primary" type="submit" value="Save Changes" />
+                </p>
+                <hr>
+                
+                <?php
+                do_settings_sections( 'rc_myctf_slider_carousel_slider_page' );   // page name
+                ?>
+                
+                <p class="submit">
+                    <input name="Submit" class="button-primary" type="submit" value="Save Changes" />
+                </p>
+                <hr>
+                
+                <?php
+                do_settings_sections( 'rc_myctf_slider_carousel_carousel_page' );   // page name
+                ?>
+                
+                <p class="submit">
+                    <input name="Submit" class="button-primary" type="submit" value="Save Changes" />
+                </p>
+                <hr>
+                
+                <?php
             }else if ( $active_tab == 'support' ){
                 settings_fields( 'rc_myctf_support_options' );              // should match with the option name
                 do_settings_sections( 'rc_myctf_need_support_section_page' );  // should match with the section name
@@ -288,23 +444,7 @@ class Rc_Myctf_Admin {
                         array( 'Check to preserve your settings on plugin uninstall' )
                         );
         
-                
         
-        
-        /* 
-         * Adding the button to invalidate the bearer token 
-         */
-        
-        /**
-        add_settings_section(
-                'rc_myctf_api_invalidate_token_section',                            // ID to identify this section
-                'Invalidate Bearer Token',                                          // Title of the section
-                array(                                                              // Function that fills the section with desired content
-                    'Rc_Myctf_Admin_Helper', 
-                    'rc_myctf_api_invalidate_token_section_callback' ),  
-                'rc_myctf_api_invalidate_token_page'                                // Page on which to add this section. Matches the section name
-                );
-        */
                 
     }// ends function rc_myctf_create_settings_sections_fields
     
@@ -481,6 +621,21 @@ class Rc_Myctf_Admin {
                 );
         
         
+        /** Adding the field for hide media option */
+        add_settings_field(
+                'rc_myctf_hide_media',
+                'Hide Media',     
+                array(
+                    'Rc_Myctf_Admin_Helper', 
+                    'rc_myctf_hide_media_callback' 
+                    ), 
+                'rc_myctf_layout_section_page',
+                'rc_myctf_layout_section',
+                array( "Hide all images/videos" )        
+                );
+        
+        
+        
         /* Adding the 'number of tweets' field  */
         add_settings_field(
                 'rc_myctf_number_of_tweets', 
@@ -491,7 +646,7 @@ class Rc_Myctf_Admin {
                 ), 
                 'rc_myctf_layout_section_page', 
                 'rc_myctf_layout_section', 
-                array( "Default number of Tweets to fetch from Twitter (1 - 10) <span class='rc_myctf_tip'>[up to 50 in Pro]</span>" )
+                array( "Default number of Tweets to fetch from Twitter" )
                 );
         
         
@@ -505,7 +660,7 @@ class Rc_Myctf_Admin {
                 ), 
                 'rc_myctf_layout_section_page', 
                 'rc_myctf_layout_section', 
-                array( "Display the number of tweets in a row (1 - 5) <span class='rc_myctf_tip'>[Available in Pro]</span>" )
+                array( "Number of tweets in a Masonry row (1 - 5)" )
                 );
         
         
@@ -535,10 +690,1037 @@ class Rc_Myctf_Admin {
                 array( 'Number of hours/days before we check for new tweets' )
                 );
         
-    }
+        
+        
+        /** 
+         * Adding the section for Links under Customize tab  
+         */
+        add_settings_section(
+                'rc_myctf_customize_links_section',                         // This is the section name
+                'Links Settings',                                           // Title of the section
+                array(                                                      // Function that fills the section with desired content
+                    'Rc_Myctf_Admin_Helper', 
+                    'rc_myctf_customize_links_section_callback' 
+                    ),
+                'rc_myctf_customize_links_page'                             // Matches the section name
+                );                         
+        
+        
+        /** Adding the field for width type */
+        add_settings_field(
+                'rc_myctf_customize_remove_links_hashtags',
+                'Remove Links from Hashtags', 
+                array(                                                          
+                    'Rc_Myctf_Admin_Helper', 
+                    'rc_myctf_customize_links_hashtags_callback' 
+                    ), 
+                'rc_myctf_customize_links_page',  
+                'rc_myctf_customize_links_section', 
+                array( '&nbsp;&nbsp;( Remove all links from Hashtags )' )        
+                );
+        
+        
+        /** Adding the field for width type */
+        add_settings_field(
+                'rc_myctf_customize_remove_links_mentions',
+                'Remove Links from Mentions', 
+                array(                                                          
+                    'Rc_Myctf_Admin_Helper', 
+                    'rc_myctf_customize_links_mentions_callback' 
+                    ), 
+                'rc_myctf_customize_links_page',  
+                'rc_myctf_customize_links_section', 
+                array( '&nbsp;&nbsp;( Remove all links from Mentions )' )        
+                );
+        
+        
+        /** Adding the field for width type */
+        add_settings_field(
+                'rc_myctf_customize_remove_ext_links',
+                'Remove External Links',                               // Title of the field
+                array(                                                          // Function that fills the field with desired input
+                    'Rc_Myctf_Admin_Helper', 
+                    'rc_myctf_customize_remove_ext_links_callback' 
+                    ), 
+                'rc_myctf_customize_links_page',                                // Matches the section name
+                'rc_myctf_customize_links_section',                             // Matches the section name
+                array( '&nbsp;&nbsp;( Remove all external links )' )        
+                );
+        
+        
+        /** Adding the field for width type */
+        add_settings_field(
+                'rc_myctf_customize_link_add_nofollow',                         // ID of the field
+                'Add nofollow to External Links',                               // Title of the field
+                array(                                                          // Function that fills the field with desired input
+                    'Rc_Myctf_Admin_Helper', 
+                    'rc_myctf_customize_link_add_nofollow_callback' 
+                    ), 
+                'rc_myctf_customize_links_page',                                // Matches the section name
+                'rc_myctf_customize_links_section',                             // Matches the section name
+                array( '&nbsp;&nbsp;( Nofollow all external links )' )        
+                );
+        
+        
+    }//end rc_myctf_create_customize_sections_fields
     
     
     
+    
+    /**
+     * Initialize the "Tweets" options by registering the sections,
+     * fields, and settings for the "Tweets" tab
+     * 
+     * @since 1.2.1
+     */
+    public static function rc_myctf_create_tweets_section_fields() {
+        
+        /* Registering the fields with WordPress  */
+        register_setting(
+                'rc_myctf_tweets_options',           //option group name
+                'rc_myctf_tweets_options',           //option name
+                array(
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_tweets_validate_options'
+                )
+                );
+        
+        
+        
+        /**
+         * Adding the section for Tweet General under Tweets tab
+         */
+        add_settings_section(
+                'rc_myctf_tweet_general_section',                           // This is the section name
+                'Tweet General',                                            // Title of the section
+                array(                                                      // Function that fills the section with desired content
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_tweet_general_section_callback'
+                ), 
+                'rc_myctf_tweets_general_page'                            // Matches the section name   
+                );
+        
+        
+        /* Adding the checkbox for Tweet Border Display  */
+        add_settings_field(
+                'rc_myctf_tweet_border',                                                                   
+                'Display Tweet Border?',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_tweet_display_border_callback'
+                ), 
+                'rc_myctf_tweets_general_page', 
+                'rc_myctf_tweet_general_section',
+                array('Toggles the visibility of the border/shadow around each tweet')   
+                );
+        
+        
+        
+        
+        /**
+         * Adding the section for Tweet Header under Tweets tab
+         */
+        add_settings_section(
+                'rc_myctf_tweet_header_section',                           // This is the section name
+                'Tweet Header',                                            // Title of the section
+                array(                                                      // Function that fills the section with desired content
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_tweet_header_section_callback'
+                ), 
+                'rc_myctf_tweets_header_page'                            // Matches the section name   
+                );
+        
+        
+        /* Adding the checkbox for Display Header  */
+        add_settings_field(
+                'rc_myctf_display_header',                                                                   
+                'Display Tweet Header?',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_display_header_callback'
+                ), 
+                'rc_myctf_tweets_header_page', 
+                'rc_myctf_tweet_header_section',
+                array('Controls the visibility of the Tweet header')   
+                );
+        
+        
+        /* Adding the checkbox for Profile Image for Header  */
+        add_settings_field(
+                'rc_myctf_display_profile_img_header',                                                                   
+                'Display Profile Image',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_display_profile_img_header_callback'
+                ), 
+                'rc_myctf_tweets_header_page', 
+                'rc_myctf_tweet_header_section',
+                array('Show profile image in Tweet header')   
+                );
+        
+        
+        /* Adding the checkbox for Display Name for Header  */
+        add_settings_field(
+                'rc_myctf_display_name_header',                                                                   
+                'Display Twitter Name',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_display_name_header_callback'
+                ), 
+                'rc_myctf_tweets_header_page', 
+                'rc_myctf_tweet_header_section',
+                array('Show Twitter name in the header')   
+                );
+        
+        
+        /* Adding the checkbox for Display Screen Name for Header  */
+        add_settings_field(
+                'rc_myctf_display_screen_name_header',                                                                   
+                'Display Screen Name',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_display_screen_name_header_callback'
+                ), 
+                'rc_myctf_tweets_header_page', 
+                'rc_myctf_tweet_header_section',
+                array('Show Twitter screen name in the header (eg. @raycreations)')   
+                );
+        
+        
+        /* Adding the checkbox for Display Date for Tweet Header  */
+        add_settings_field(
+                'rc_myctf_display_date_header',                                                                   
+                'Display Date',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_display_date_header_callback'
+                ), 
+                'rc_myctf_tweets_header_page', 
+                'rc_myctf_tweet_header_section',
+                array('Show date/time of tweet in the header')   
+                );
+        
+        
+        
+        
+        /** 
+        * Adding the section for Layout under Customize tab  
+        */
+        add_settings_section(
+                'rc_myctf_tweet_footer_section',                          // This is the section name
+                'Tweet Footer',                                          // Title of the section
+                array(                                              // Function that fills the section with desired content
+                    'Rc_Myctf_Admin_Helper', 
+                    'rc_myctf_tweet_footer_section_callback' 
+                    ),
+                'rc_myctf_tweets_footer_page'                           // Matches the section name
+                );                         
+
+
+        /** Adding the field for Display Tweet Footer */
+        add_settings_field(
+                'rc_myctf_display_tweet_footer',                                     // ID of the field
+                'Display Tweet Footer',                                         // Title of the field
+                array(                                                          // Function that fills the field with desired input
+                    'Rc_Myctf_Admin_Helper', 
+                    'rc_myctf_display_tweet_footer_callback' 
+                    ), 
+                'rc_myctf_tweets_footer_page',                                      // Matches the section name
+                'rc_myctf_tweet_footer_section',                                      // Matches the section name
+                array( 'Controls the visibility of the Tweet Footer' )        
+                );
+        
+        
+        /** Adding the field for Display Likes */
+        add_settings_field(
+                'rc_myctf_display_likes_footer',
+                'Display Likes',
+                array(
+                    'Rc_Myctf_Admin_Helper', 
+                    'rc_myctf_display_likes_footer_callback' 
+                    ), 
+                'rc_myctf_tweets_footer_page',
+                'rc_myctf_tweet_footer_section',
+                array( 'Show Likes in the Tweet Footer' )        
+                );
+        
+        
+        /** Adding the field for Display Retweets */
+        add_settings_field(
+                'rc_myctf_display_retweets_footer',
+                'Display Retweets',
+                array(
+                    'Rc_Myctf_Admin_Helper', 
+                    'rc_myctf_display_retweets_footer_callback' 
+                    ), 
+                'rc_myctf_tweets_footer_page',
+                'rc_myctf_tweet_footer_section',
+                array( 'Show Retweets in the Tweet Footer' )        
+                );
+        
+        
+        /** Adding the field for Display Screen Name */
+        add_settings_field(
+                'rc_myctf_display_screen_name_footer',
+                'Display Screen Name',
+                array(
+                    'Rc_Myctf_Admin_Helper', 
+                    'rc_myctf_display_screen_name_footer_callback' 
+                    ), 
+                'rc_myctf_tweets_footer_page',
+                'rc_myctf_tweet_footer_section',
+                array( 'Show Screen Name in the Tweet Footer (eg. @raycreations)' )        
+                );
+        
+        
+        /** Adding the field for Display Date */
+        add_settings_field(
+                'rc_myctf_display_date_footer',
+                'Display Date',
+                array(
+                    'Rc_Myctf_Admin_Helper', 
+                    'rc_myctf_display_date_footer_callback' 
+                    ), 
+                'rc_myctf_tweets_footer_page',
+                'rc_myctf_tweet_footer_section',
+                array( 'Show Date in the Tweet Footer' )        
+                );
+        
+        
+    }//ends rc_myctf_create_tweets_section_fields
+    
+    
+    
+    
+    
+    
+    /**
+     * Initialize the "Style" options by registering the sections,
+     * fields, and settings for the "Style" tab
+     * 
+     * @since 1.2.1
+     */
+    public static function rc_myctf_create_style_section_fields() {
+        
+        /* Registering the fields with WordPress  */
+        register_setting(
+                'rc_myctf_style_options',           //option group name
+                'rc_myctf_style_options',           //option name
+                array(
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_validate_options'
+                )
+                );
+        
+        
+        /**
+         * Adding the section for General under "Style" tab
+         */
+        add_settings_section(
+                'rc_myctf_style_general_section',                           // This is the section name
+                'Style General',                                            // Title of the section
+                array(                                                      // Function that fills the section with desired content
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_general_section_callback'
+                ), 
+                'rc_myctf_style_general_page'                            // Matches the section name   
+                );
+        
+        
+        /* Adding the dropdown field for General Font Size under "Style" tab  */
+        add_settings_field(
+                'rc_myctf_style_font_size',                                                                   
+                'Overall Font Size (px)',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_font_size_callback'
+                ), 
+                'rc_myctf_style_general_page', 
+                'rc_myctf_style_general_section',
+                array('Overall font size in pixels (px)')   
+                );
+        
+        
+        /* Adding the color picker for General Font Color under "Style" tab  */
+        add_settings_field(
+                'rc_myctf_style_font_color',                                                                   
+                'Choose Font Color',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_font_color_callback'
+                ), 
+                'rc_myctf_style_general_page', 
+                'rc_myctf_style_general_section',
+                array('Leave blank for default')   
+                );
+        
+        
+        /* Adding the checkbox for Display Header  */
+        add_settings_field(
+                'rc_myctf_style_link_text_decoration',                                                                   
+                'Link Text Decoration',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_link_text_decoration_callback'
+                ), 
+                'rc_myctf_style_general_page', 
+                'rc_myctf_style_general_section',
+                array('Hyperlinked text-decoration')   
+                );
+        
+        
+        /* Adding the color picker for Display Feed Background Color in Style General section  */
+        /*
+        add_settings_field(
+                'rc_myctf_style_feed_bg_color',                                                                   
+                'Feed Background Color',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_feed_bg_color_callback'
+                ), 
+                'rc_myctf_style_general_page', 
+                'rc_myctf_style_general_section',
+                array('Feed Background color')   
+                );
+        */
+        
+        
+        /* Adding the checkbox for Display Header  */
+        add_settings_field(
+                'rc_myctf_style_tweet_bg_color',                                                                   
+                'Tweet Background Color',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_tweet_bg_color_callback'
+                ), 
+                'rc_myctf_style_general_page', 
+                'rc_myctf_style_general_section',
+                array('Tweet Background color')   
+                );
+        
+        
+        /* Adding the checkbox for Display Header  */
+        add_settings_field(
+                'rc_myctf_style_tweet_border_type',                                                                   
+                'Tweet Border Type',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_tweet_border_type_callback'
+                ), 
+                'rc_myctf_style_general_page', 
+                'rc_myctf_style_general_section',
+                array('Border around tweets')   
+                );
+        
+        
+        
+        /**
+         * Adding the section for Header under "Style" tab
+         */
+        add_settings_section(
+                'rc_myctf_style_header_section',                                // This is the section name
+                'Tweet Header',                                           // Title of the section
+                array(                                                          // Function that fills the section with desired content
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_header_section_callback'
+                ), 
+                'rc_myctf_style_header_page'                                    // Matches the section name   
+                );
+        
+        
+        /* Adding the checkbox for Display Header  */
+        add_settings_field(
+                'rc_myctf_style_font_size_header',                                                                   
+                'Font Size (%)',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_font_size_header_callback'
+                ), 
+                'rc_myctf_style_header_page', 
+                'rc_myctf_style_header_section',
+                array('Percentage (%) of the <i>Overall Font Size</i> set above')   
+                );
+        
+        
+        /* Adding the color picker for Name Font Color in Header section */
+        add_settings_field(
+                'rc_myctf_style_name_font_color_header',                                                                   
+                'Name Font Color',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_name_font_color_header_callback'
+                ), 
+                'rc_myctf_style_header_page', 
+                'rc_myctf_style_header_section',
+                array('Name font color in the Twitter Head section')   
+                );
+        
+        
+        /* Adding the dropdown box for Name Font Weight in Header Section  */
+        add_settings_field(
+                'rc_myctf_style_name_font_weight_header',                                                                   
+                'Name Font Weight',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_name_font_weight_header_callback'
+                ), 
+                'rc_myctf_style_header_page', 
+                'rc_myctf_style_header_section',
+                array('Name font weight in the Twitter Head section')   
+                );
+        
+        
+        /* Adding the color picker for Screen Name Font Size in Header section */
+        add_settings_field(
+                'rc_myctf_style_screen_name_font_size_header',                                                                   
+                'Screen Name Font Size (%)',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_screen_name_font_size_header_callback'
+                ), 
+                'rc_myctf_style_header_page', 
+                'rc_myctf_style_header_section',
+                array('Screen Name font size percentage in the Twitter Head section')   
+                );
+        
+        
+        /* Adding the color picker for Screen Name Font Color in Header section */
+        add_settings_field(
+                'rc_myctf_style_screen_name_font_color_header',                                                                   
+                'Screen Name Font Color',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_screen_name_font_color_header_callback'
+                ), 
+                'rc_myctf_style_header_page', 
+                'rc_myctf_style_header_section',
+                array('Screen Name (e.g. @raycreations) font color in the Twitter Head section')   
+                );
+        
+        
+        /* Adding the dropdown box for Name Font Weight in Header Section  */
+        add_settings_field(
+                'rc_myctf_style_screen_name_font_weight_header',                                                                   
+                'Screen Name Font Weight',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_screen_name_font_weight_header_callback'
+                ), 
+                'rc_myctf_style_header_page', 
+                'rc_myctf_style_header_section',
+                array('Screen Name font weight in the Twitter Head section')   
+                );
+        
+        
+        /* Adding the dropdown for Date Font Size in Header section */
+        add_settings_field(
+                'rc_myctf_style_date_font_size_header',                                                                   
+                'Date Font Size (%)',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_date_font_size_header_callback'
+                ), 
+                'rc_myctf_style_header_page', 
+                'rc_myctf_style_header_section',
+                array('Date font size percentage in the Twitter Head section')   
+                );
+        
+        
+        /* Adding the color picker for Date Font Color in Header section */
+        add_settings_field(
+                'rc_myctf_style_date_font_color_header',                                                                   
+                'Date Font Color',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_date_font_color_header_callback'
+                ), 
+                'rc_myctf_style_header_page', 
+                'rc_myctf_style_header_section',
+                array('Date font color in the Twitter Head section')   
+                );
+        
+        
+        /* Adding the dropdown box for Date Font Weight in Header Section  */
+        add_settings_field(
+                'rc_myctf_style_date_font_weight_header',                                                                   
+                'Date Font Weight',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_date_font_weight_header_callback'
+                ), 
+                'rc_myctf_style_header_page', 
+                'rc_myctf_style_header_section',
+                array('Date font weight in the Twitter Head section')   
+                );
+        
+        
+        /* Adding the dropdown box for Link Text Decoration in Header Section  */
+        add_settings_field(
+                'rc_myctf_style_link_text_decoration_header',                                                                   
+                'Link Text Decoration',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_link_text_decoration_header_callback'
+                ), 
+                'rc_myctf_style_header_page', 
+                'rc_myctf_style_header_section',
+                array('Link text decoration styling')   
+                );
+        
+        
+        
+        
+        /**
+         * Adding the section for Tweet under "Style" tab
+         */
+        add_settings_section(
+                'rc_myctf_style_tweet_section',                                // This is the section name
+                'Tweets Section',                                           // Title of the section
+                array(                                                          // Function that fills the section with desired content
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_tweet_section_callback'
+                ), 
+                'rc_myctf_style_tweet_page'                                    // Matches the section name   
+                );
+        
+        
+        /* Adding the dropdown for Tweet Font Size  */
+        add_settings_field(
+                'rc_myctf_style_font_size_tweet',                                                                   
+                'Font Size (%)',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_font_size_tweet_callback'
+                ), 
+                'rc_myctf_style_tweet_page', 
+                'rc_myctf_style_tweet_section',
+                array('Percentage (%) of the <i>Overall Font Size</i> set above')   
+                );
+        
+        
+        /* Adding the color picker for Font Color in Tweet section */
+        add_settings_field(
+                'rc_myctf_style_font_color_tweet',                                                                   
+                'Font Color',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_font_color_tweet_callback'
+                ), 
+                'rc_myctf_style_tweet_page', 
+                'rc_myctf_style_tweet_section',
+                array('Font color of the tweets')   
+                );
+        
+        
+        /* Adding the dropdown box for Date Font Weight in Header Section  */
+        add_settings_field(
+                'rc_myctf_style_font_weight_tweet',                                                                   
+                'Font Weight',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_font_weight_tweet_callback'
+                ), 
+                'rc_myctf_style_tweet_page', 
+                'rc_myctf_style_tweet_section',
+                array('Font weight of the tweets')   
+                );
+        
+        
+        /* Adding the color picker for Font Color in Tweet section */
+        add_settings_field(
+                'rc_myctf_style_link_color_tweet',                                                                   
+                'Link Color',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_link_color_tweet_callback'
+                ), 
+                'rc_myctf_style_tweet_page', 
+                'rc_myctf_style_tweet_section',
+                array('Link color of the tweets')   
+                );
+        
+        
+        /* Adding the checkbox for Display Header  */
+        add_settings_field(
+                'rc_myctf_style_link_text_decoration_tweet',                                                                   
+                'Link Text Decoration',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_link_text_decoration_tweet_callback'
+                ), 
+                'rc_myctf_style_tweet_page', 
+                'rc_myctf_style_tweet_section',
+                array('Hyperlinked text-decoration')   
+                );
+        
+        
+        
+        
+        
+        /**
+         * Adding the section for Footer under "Style" tab
+         */
+        add_settings_section(
+                'rc_myctf_style_footer_section',                                // This is the section name
+                'Footer Section',                                           // Title of the section
+                array(                                                          // Function that fills the section with desired content
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_footer_section_callback'
+                ), 
+                'rc_myctf_style_footer_page'                                    // Matches the section name   
+                );
+        
+        
+        /* Adding the dropdown for Style tab - Footer Font Size  */
+        add_settings_field(
+                'rc_myctf_style_font_size_footer',                                                                   
+                'Font Size (%)',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_font_size_footer_callback'
+                ), 
+                'rc_myctf_style_footer_page', 
+                'rc_myctf_style_footer_section',
+                array('Percentage (%) of the <i>Overall Font Size</i> set above')   
+                );
+        
+        /* Adding the color picker for Like icon Color in Style Footer section */
+        add_settings_field(
+                'rc_myctf_style_like_icon_color_footer',                                                                   
+                'Like Icon Color',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_like_icon_color_footer_callback'
+                ), 
+                'rc_myctf_style_footer_page', 
+                'rc_myctf_style_footer_section',
+                array('Like icon color in the Tweet footer')   
+                );
+        
+        
+        /* Adding the color picker for Like count in Style Footer section */
+        add_settings_field(
+                'rc_myctf_style_like_count_color_footer',                                                                   
+                'Like Count Color',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_like_count_color_footer_callback'
+                ), 
+                'rc_myctf_style_footer_page', 
+                'rc_myctf_style_footer_section',
+                array('Like count color in the Tweet footer')   
+                );
+        
+        
+        /* Adding the color picker for Retweet icon Color in Style Footer section */
+        add_settings_field(
+                'rc_myctf_style_retweet_icon_color_footer',                                                                   
+                'Retweet Icon Color',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_retweet_icon_color_footer_callback'
+                ), 
+                'rc_myctf_style_footer_page', 
+                'rc_myctf_style_footer_section',
+                array('Retweet icon color in the Tweet footer')   
+                );
+        
+        
+        /* Adding the color picker for Like count in Style Footer section */
+        add_settings_field(
+                'rc_myctf_style_retweet_count_color_footer',                                                                   
+                'Retweet Count Color',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_retweet_count_color_footer_callback'
+                ), 
+                'rc_myctf_style_footer_page', 
+                'rc_myctf_style_footer_section',
+                array('Retweet count color in the Tweet footer')   
+                );
+        
+        
+        /* Adding the color picker for Screen Name Font Color in Style Footer section */
+        add_settings_field(
+                'rc_myctf_style_screen_name_font_color_footer',                                                                   
+                'Screen Name Font Color',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_screen_name_font_color_footer_callback'
+                ), 
+                'rc_myctf_style_footer_page', 
+                'rc_myctf_style_footer_section',
+                array('Screen Name (e.g. @raycreations) font color in the Tweet footer')   
+                );
+        
+        
+        /* Adding the dropdown box for Screen Name Font Weight in Style Footer Section  */
+        add_settings_field(
+                'rc_myctf_style_screen_name_font_weight_footer',                                                                   
+                'Screen Name Font Weight',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_screen_name_font_weight_footer_callback'
+                ), 
+                'rc_myctf_style_footer_page', 
+                'rc_myctf_style_footer_section',
+                array('Screen Name font weight in the Tweet footer')   
+                );
+        
+        
+        /* Adding the color picker for Screen Name Font Color in Style Footer section */
+        add_settings_field(
+                'rc_myctf_style_date_font_color_footer',                                                                   
+                'Date Font Color',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_date_font_color_footer_callback'
+                ), 
+                'rc_myctf_style_footer_page', 
+                'rc_myctf_style_footer_section',
+                array('Date font color in the Tweet footer')   
+                );
+        
+        
+        /* Adding the dropdown box for Date Font Weight in Style Footer Section  */
+        add_settings_field(
+                'rc_myctf_style_date_font_weight_footer',                                                                   
+                'Date Font Weight',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_date_font_weight_footer_callback'
+                ), 
+                'rc_myctf_style_footer_page', 
+                'rc_myctf_style_footer_section',
+                array('Date font weight in the Tweet footer')   
+                );
+        
+        
+        /* Adding the dropdown box for Link Text Decoration in Footer Section under 'Style' tab  */
+        add_settings_field(
+                'rc_myctf_style_link_text_decoration_footer',                                                                   
+                'Link Text Decoration',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_style_link_text_decoration_footer_callback'
+                ), 
+                'rc_myctf_style_footer_page', 
+                'rc_myctf_style_footer_section',
+                array('Link text decoration styling')   
+                );
+        
+        
+        
+        
+    }//ends rc_myctf_create_style_section_fields
+    
+    
+    
+    
+    
+    
+    /**
+     * Initialize the "Slider/Carousel" options by registering the sections,
+     * fields, and settings for the "Slider/Carousel" tab
+     * 
+     * @since 1.2.1
+     */
+    public static function rc_myctf_create_slider_carousel_section_fields() {
+        
+        /* Registering the fields with WordPress  */
+        register_setting(
+                'rc_myctf_slider_carousel_options',           //option group name
+                'rc_myctf_slider_carousel_options',           //option name
+                array(
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_slider_carousel_validate_options'
+                )
+                );
+        
+        
+        /**
+         * Adding the section for General under "Slider/Carousel" tab
+         */
+        add_settings_section(
+                'rc_myctf_slider_carousel_general_section',                           // This is the section name
+                'General Settings',                                                  // Title of the section
+                array(                                                      // Function that fills the section with desired content
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_slider_carousel_general_section_callback'
+                ), 
+                'rc_myctf_slider_carousel_general_page'                            // Matches the section name   
+                );
+        
+        
+        /* Adding the checkbox field for Navigation Arrows under "Slider/Carousel" General tab  */
+        add_settings_field(
+                'rc_myctf_slider_carousel_nav_arrows',                                                                   
+                'Show Nav Arrows',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_slider_carousel_nav_arrows_callback'
+                ), 
+                'rc_myctf_slider_carousel_general_page', 
+                'rc_myctf_slider_carousel_general_section',
+                array('Display the prev/next navigation arrow')   
+                );
+        
+        
+        /* Adding the checkbox field for Navigation Dots under "Slider/Carousel" General tab  */
+        add_settings_field(
+                'rc_myctf_slider_carousel_nav_dots',                                                                   
+                'Show Dots Navigation',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_slider_carousel_nav_dots_callback'
+                ), 
+                'rc_myctf_slider_carousel_general_page', 
+                'rc_myctf_slider_carousel_general_section',
+                array('Display dots navigation')   
+                );
+        
+        
+        /* Adding the checkbox field for Navigation Dots under "Slider/Carousel" General tab  */
+        add_settings_field(
+                'rc_myctf_slider_carousel_autoplay',                                                                   
+                'Autoplay',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_slider_carousel_autoplay_callback'
+                ), 
+                'rc_myctf_slider_carousel_general_page', 
+                'rc_myctf_slider_carousel_general_section',
+                array('Automatic transition of slides')   
+                );
+        
+        
+        /* Adding the text field for Transition Interval under "Slider/Carousel" General tab  */
+        add_settings_field(
+                'rc_myctf_slider_carousel_transition_interval',                                                                   
+                'Transition Interval (Sec)',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_slider_carousel_transition_interval_callback'
+                ), 
+                'rc_myctf_slider_carousel_general_page', 
+                'rc_myctf_slider_carousel_general_section',
+                array('(1-20) Automatic transition of slides in seconds')   
+                );
+        
+        
+        /* Adding the text field for Transition Speed under "Slider/Carousel" General tab  */
+        add_settings_field(
+                'rc_myctf_slider_carousel_transition_speed',                                                                   
+                'Transition Speed (Sec)',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_slider_carousel_transition_speed_callback'
+                ), 
+                'rc_myctf_slider_carousel_general_page', 
+                'rc_myctf_slider_carousel_general_section',
+                array('(1-10) Automatic speed of slides in seconds')   
+                );
+        
+        
+        /* Adding the checkbox field for 'Pause on Hover' under "Slider/Carousel" General tab  */
+        add_settings_field(
+                'rc_myctf_slider_carousel_pause_on_hover',                                                                   
+                'Pause On Hover',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_slider_carousel_pause_on_hover_callback'
+                ), 
+                'rc_myctf_slider_carousel_general_page', 
+                'rc_myctf_slider_carousel_general_section',
+                array('Pause on mouse hover')   
+                );
+        
+        
+        /* Adding the checkbox field for 'Loop' under "Slider/Carousel" General tab  */
+        add_settings_field(
+                'rc_myctf_slider_carousel_loop',                                                                   
+                'Loop',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_slider_carousel_loop_callback'
+                ), 
+                'rc_myctf_slider_carousel_general_page', 
+                'rc_myctf_slider_carousel_general_section',
+                array('Loop through the tweet items')   
+                );
+        
+        
+        
+        
+        
+        /**
+         * Adding the section for 'Slider Settings' under "Slider/Carousel" tab
+         */
+        add_settings_section(
+                'rc_myctf_slider_carousel_slider_section',                           // This is the section name
+                'Slider Settings',                                                  // Title of the section
+                array(                                                      // Function that fills the section with desired content
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_slider_carousel_slider_section_callback'
+                ), 
+                'rc_myctf_slider_carousel_slider_page'                            // Matches the section name   
+                );
+        
+        
+        /* Adding the checkbox field for 'Auto Height' under "Slider/Carousel" Slider tab  */
+        add_settings_field(
+                'rc_myctf_slider_carousel_nav_arrows',                                                                   
+                'Auto Height',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_slider_carousel_auto_height_callback'
+                ), 
+                'rc_myctf_slider_carousel_slider_page', 
+                'rc_myctf_slider_carousel_slider_section',
+                array('Automatic height adjustment')   
+                );
+        
+        
+        
+        
+        /**
+         * Adding the section for 'Carousel Settings' under "Slider/Carousel" tab
+         */
+        add_settings_section(
+                'rc_myctf_slider_carousel_carousel_section',                           // This is the section name
+                'Carousel Settings',                                                  // Title of the section
+                array(                                                      // Function that fills the section with desired content
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_slider_carousel_carousel_section_callback'
+                ), 
+                'rc_myctf_slider_carousel_carousel_page'                            // Matches the section name   
+                );
+        
+        
+        /* Adding the checkbox field for 'Items On Screen' under "Slider/Carousel" Carousel tab  */
+        add_settings_field(
+                'rc_myctf_slider_carousel_items_on_screen',                                                                   
+                'Items On Screen',                               
+                array(                                      
+                    'Rc_Myctf_Admin_Helper',
+                    'rc_myctf_slider_carousel_items_on_screen_callback'
+                ), 
+                'rc_myctf_slider_carousel_carousel_page', 
+                'rc_myctf_slider_carousel_carousel_section',
+                array('Number of items shown in the carousel at once')   
+                );
+        
+        
+        
+        
+    }//ends rc_myctf_create_slider_carousel_section_fields
+    
+    
+    
+    
+    
+    
+  
     
     /*
      * Initializes the "Support" options by registering the sections,
@@ -786,6 +1968,87 @@ class Rc_Myctf_Admin {
         
     }//ends rc_myctf_fetch_access_tokens_from_twitter
 
+    
+    
+    /*
+     * Generates the arrays requried by other functions like
+     * $font_size needed by the Style Settings tab
+     * 
+     * @since 1.2.1
+     */
+    public static function rc_myctf_generate_required_arrays() {
+        
+        //set the values for global $fontSizes
+        Rc_Myctf_Admin::$fontSizes = array(
+            'inherit', '8', '9', '10', '11', '12', '14', '16', '18', '20', '22', '24', '26', '28', '36', '48', '72'
+        );
+        
+        //set the values for the global $fontPercents
+        Rc_Myctf_Admin::$fontPercents = array(
+            'inherit', '50', '55', '60', '65', '70', '75', '80', '85', '90', 
+            '95', '100', '105', '110', '115', '120', '125', '130', '135', '140', 
+            '145', '150'
+        );
+        
+        //set the values for the global $fontWeights
+        Rc_Myctf_Admin::$fontWeights = array( 'inherit', 'normal', 'bold' );
+        
+        //set the values for text decorations
+        Rc_Myctf_Admin::$textDecorations = array( 'inherit', 'none', 'underline' );
+        
+        
+    }//ends rc_myctf_generate_required_arrays
+    
+    
+    
+    /*
+     * Handles the reset options for the settings tabs
+     * in the admin panel
+     * 
+     * @since 1.2.1
+     * @access public
+     */
+    public static function rc_myctf_handle_reset_options_request() {
+        
+        /* check if 'rc_myctf_action_reset' is set, if not return */
+        if ( !isset( $_REQUEST[ 'rc_myctf_action_reset' ] ) || !isset( $_REQUEST[ 'tab' ] ) ){ 
+            return; 
+        }
+        
+        /* check if current user has sufficient privileges, otherwise, tell WordPress to die */
+        if ( !current_user_can( 'manage_options' ) ) { wp_die( 'Insufficient privileges' ); }
+        
+        /* Extract the value of 'rc_myctf_action_reset' */
+        //$action = wp_strip_all_tags( $_REQUEST[ 'rc_myctf_action_reset' ] );
+        $action = sanitize_text_field( filter_input( INPUT_GET, 'rc_myctf_action_reset' ) );
+        $tab = sanitize_text_field( filter_input( INPUT_GET, 'tab' ) );
+        
+        if ( $action == 'success' ) {
+            add_action( 'admin_notices', array( 'Rc_Myctf_Notices', 'rc_myctf_admin_notice__success' ) );
+            return;
+        } else if ( $action == 'error' ) {
+            add_action( 'admin_notices', array( 'Rc_Myctf_Notices', 'rc_myctf_admin_notice__error' ) );
+            return;
+        }
+        
+        //verify nonce
+        check_admin_referer( 'rc_myctf-' . $action . '_reset' );
+        
+        //reset tweet visibility options
+        $result = Rc_Myctf_Admin_Helper::rc_myctf_reset_options( $action );
+            
+        //check that action equals 'delete_cached_tweets'
+        if ( $action == 'reset_tweets_visibility' || $action == 'reset_style' || $action == 'reset_slider_options' ) {
+            //if $result is TRUE
+            if ( $result ) {
+                wp_redirect( add_query_arg( array( 'tab' => $tab, 'rc_myctf_action_reset' => 'success' ), RC_MYCTF_ADMIN_URL ) );
+            } else {
+                wp_redirect( add_query_arg( array( 'tab' => $tab, 'rc_myctf_action_reset' => 'error' ), RC_MYCTF_ADMIN_URL ) );
+            }
+        }//end if
+        
+    }//ends rc_myctf_delete_cached_tweets
+    
     
 
 }// ends class

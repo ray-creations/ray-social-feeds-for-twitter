@@ -1,0 +1,60 @@
+/*
+Used to style the admin interface of the My Custom Twitter Feed plugin.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 4 Oct, 2019, 12:36:27 PM
+    Author     : Ray Creations
+*/
+
+.rc_myctf_tip {
+    color: #999;
+    margin-left: 10px;
+    font-style: italic;
+}
+
+/*Fetch Token*/
+#rc_myctf_fetch_token {
+    background-color: rgb(29, 161, 242);
+    padding: 12px 25px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    border-radius: 5px;
+}
+
+
+#rc_myctf_fetch_token:hover {
+    background-color: #fff;
+    color: rgb(29, 161, 242);
+}
+
+
+/* For Shortcode Table */
+.rc-myctf-scode-table {
+    margin: 2rem 0;
+}
+
+
+.rc-myctf-scode-table th {
+    display: table-cell;
+    vertical-align: inherit;
+    font-weight: bold;
+}
+
+.rc-myctf-scode-table th:nth-child(1) {
+    width: 15%;
+}
+
+.rc-myctf-scode-table th:nth-child(2) {
+    width: 45%;
+}
+
+.rc-myctf-scode-table th:nth-child(3) {
+    width: 40%;
+}
+
+.rc-myctf-scode-table .rc-myctf-theading {
+    background-color: #f5f3f3;
+}

@@ -71,6 +71,7 @@ class Rc_Myctf_Widget extends WP_Widget {
             'hashtags' => 'nature mountain',
             'search_string' => 'desert flower',
             'display_style' => 'display_list',
+            'hide_media' => 'off',
             'count' => '4',
             'number_of_tweets_in_row' => '2',
             'exclude_replies' => 'on',
@@ -81,6 +82,7 @@ class Rc_Myctf_Widget extends WP_Widget {
         $title = sanitize_text_field( $instance[ 'title' ] );
         $screen_name = sanitize_text_field( $instance[ 'screen_name' ] );
         $display_style = wp_strip_all_tags( $instance[ 'display_style' ] );
+        $hide_media = wp_strip_all_tags( $instance[ 'hide_media' ] );
         $count = intval( $instance[ 'count' ] );
         $number_of_tweets_in_row = intval( $instance[ 'number_of_tweets_in_row' ] );
         $feed_type = sanitize_text_field( $instance[ 'feed_type' ] );
@@ -119,8 +121,15 @@ class Rc_Myctf_Widget extends WP_Widget {
             <p>
                 Display Style:
                 <select class="widefat" name="<?php echo esc_attr( $this->get_field_name( 'display_style' ) ); ?>" >
-                    <option value="display_list"><?php echo "List" ?></option>
+                    <option value="display_list" <?php selected( $display_style, 'display_list' ); ?>><?php echo "List" ?></option>
+                    <option value="display_masonry" <?php selected( $display_style, 'display_masonry' ); ?>><?php echo "Masonry" ?></option>
+                    <option value="display_slider_1_col" <?php selected( $display_style, 'display_slider_1_col' ); ?>><?php echo "Slider 1 Column" ?></option>
+                    <option value="display_slider_2_col" <?php selected( $display_style, 'display_slider_2_col' ); ?>><?php echo "Slider 2 Column" ?></option>
                 </select>
+            </p>
+            <p>
+                Hide Media: <input type="checkbox" name="<?php echo esc_attr( $this->get_field_name( 'hide_media' ) ); ?>"
+                                        <?php checked( $hide_media, 'on' ); ?>>
             </p>
             <p>
                 Number of Tweets: 
@@ -189,6 +198,7 @@ class Rc_Myctf_Widget extends WP_Widget {
         $instance[ 'title' ] = sanitize_text_field( $new_instance[ 'title' ] );
         $instance[ 'screen_name' ] = sanitize_text_field( $new_instance[ 'screen_name' ] );
         $instance[ 'display_style' ] = sanitize_text_field( $new_instance[ 'display_style' ] );
+        $instance[ 'hide_media' ] = wp_strip_all_tags( $new_instance[ 'hide_media' ] );
         $instance[ 'count' ] = intval( $new_instance[ 'count' ] );
         $instance[ 'number_of_tweets_in_row' ] = intval( $new_instance[ 'number_of_tweets_in_row' ] );
         $instance[ 'feed_type' ] = sanitize_text_field( $new_instance[ 'feed_type' ] );
@@ -265,6 +275,7 @@ class Rc_Myctf_Widget extends WP_Widget {
         //load the widget settings
         $screen_name = !empty( $instance[ 'screen_name' ] ) ? wp_strip_all_tags( $instance[ 'screen_name' ] ) : 'raycreations';
         $display_style = !empty( $instance[ 'display_style' ] ) ? wp_strip_all_tags( $instance[ 'display_style' ] ) : 'display_list';
+        $hide_media = !empty( $instance[ 'hide_media' ] ) ? wp_strip_all_tags( $instance[ 'hide_media' ] ) : '0';
         $count = !empty( $instance[ 'count' ] ) ? intval( $instance[ 'count' ] ) : '4' ;
         $number_of_tweets_in_row = !empty( $instance[ 'number_of_tweets_in_row' ] ) ? intval( $instance[ 'number_of_tweets_in_row' ] ) : '1';
         $feed_type = !empty( $instance[ 'feed_type' ] ) ? wp_strip_all_tags( $instance[ 'feed_type' ] ) : 'user_timeline';
@@ -281,11 +292,14 @@ class Rc_Myctf_Widget extends WP_Widget {
             $shortcode .= ' feed_type="hashtags_timeline" hashtags="' . $hashtags . '"';
         } else if ( $feed_type == 'search_timeline' ) {
             $shortcode .= ' feed_type="search_timeline" search_string="' . $search_string . '"';
-        } else {
+        } else if ( $feed_type == 'user_timeline' ) {
             $shortcode .= ' feed_type="user_timeline" screen_name="' . $screen_name . '"';
+        } else if ( $feed_type == 'mentions_timeline' ) {
+            $shortcode .= ' feed_type="mentions_timeline"';
         }
         
         $shortcode .= ' display_style="' . $display_style . '"';
+        $shortcode .= ' hide_media="' . $hide_media . '"';
         $shortcode .= ' count="' . $count . '"';
         $shortcode .= ' exclude_replies="' . $exclude_replies . '"';
         $shortcode .= ' include_rts="' . $include_rts . '"';

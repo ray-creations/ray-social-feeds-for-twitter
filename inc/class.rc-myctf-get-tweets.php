@@ -53,7 +53,7 @@ class Rc_Myctf_Tweets {
         if ( false === ( $rc_myctf_cache->rc_myctf_get_cache( $id ) ) ) {
             
             /* 
-             * Fetch fresh Tweets as stored tweets have expired 
+             * Fetch fresh Tweets as stored tweets have expired for this shortcode id
              */
             
             $raw_tweets = Rc_Myctf_Tweets::rc_myctf_fetch_live_tweets();
@@ -151,14 +151,12 @@ class Rc_Myctf_Tweets {
                 ->rc_myctf_process_request();
         
         
-        if ( $response === FALSE ) {
+        if ( $response === FALSE || is_wp_error( $response ) ) {
             return FALSE;
         }
                 
         $tweets = json_decode( $response['body'] );
-        //print_r($tweets);
-        //wp_die();
-        
+
         
         /*
          * Check if $tweets === false Or if $raw_tweets is an object of WP Error class
@@ -208,9 +206,9 @@ class Rc_Myctf_Tweets {
         }
         
         /* Restricting count to 10 only for Free version */
-        if ( $merged_atts_options[ 'count' ] > 10 ) {
-            $merged_atts_options[ 'count' ] = 10;
-        }
+        //if ( $merged_atts_options[ 'count' ] > 10 ) {
+            //$merged_atts_options[ 'count' ] = 10;
+        //}
         
         /* Retrieve options from merged attributes & options variable */
         //$id = esc_attr( $merged_atts_options[ 'id' ] );
@@ -240,6 +238,15 @@ class Rc_Myctf_Tweets {
             $get_fields .= '&include_rts=' . $include_rts;
             $get_fields .= '&tweet_mode=extended';
  
+            
+        } else if ( $feed_type == 'mentions_timeline' ) {
+            
+            /* prefix a question mark (?) to the $get_fields string, as required by the Rc_Myctf_Twitter_Connect class  */
+            $get_fields = '?';
+            
+            $get_fields .= 'count=' . $count;
+            $get_fields .= '&include_entities=true';
+            $get_fields .= '&tweet_mode=extended';
             
         } else if ( $feed_type == 'hashtags_timeline' || $feed_type == 'search_timeline' ) {
             

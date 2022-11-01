@@ -353,6 +353,10 @@ class Rc_Myctf_Twitter_Connect {
             
             $request_url = 'https://api.twitter.com/1.1/statuses/user_timeline.json';
             
+        } else if( $feed_type == 'mentions_timeline' ) {
+            
+            $request_url = 'https://api.twitter.com/1.1/statuses/mentions_timeline.json';
+            
         } else if( $feed_type == 'hashtags_timeline' || $feed_type == 'search_timeline' ) {
             
             $request_url = 'https://api.twitter.com/1.1/search/tweets.json';
