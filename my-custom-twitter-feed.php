@@ -4,7 +4,7 @@
  * Plugin Name: Ray Social Feeds For Twitter
  * Plugin URI: https://www.raycreations.net/my-custom-twitter-feed/
  * Description: Display beautiful twitter feeds on your website.
- * Version: 1.2.3
+ * Version: 1.2.4
  * Author: Ray Creations
  * Author URI: https://www.raycreations.net
  * License: GPLv2 or later
@@ -43,7 +43,7 @@ if ( !defined( 'ABSPATH' ) ){
  * 
  * @since 1.0
  */
-define( 'RSFFT_VERSION', '1.2.3' );
+define( 'RSFFT_VERSION', '1.2.4' );
 define( 'RSFFT_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RSFFT_URI', plugin_dir_url( __FILE__ ) );
 define( 'RSFFT_OAUTH_URL', 'https://api.raycreations.net/wp-json/ray-api/v1/twitter-oauth' );
@@ -53,6 +53,10 @@ define( 'RSFFT_ADMIN_URL', admin_url( 'options-general.php?page=myctf-page' ) );
  */
 define( 'RSFFT_SCODE_STR', 'my_custom_tweets' );
 
+/**
+ * @since 1.2.4
+ */
+define( 'RSFFT_IS_PRO', FALSE );
 
 /**
  * Enqueue style sheet & scripts
@@ -386,8 +390,18 @@ function rsfft_enqueue_admin_scripts(){
         /* Include admin js file for our plugin */
         wp_enqueue_script( 'rsfft_admin_scripts', RSFFT_URI . 'js/rsfft_admin_scripts.js', array( 'wp-color-picker' ), '1.0', true );
         
+        /* Include the limiter js file for free version. Remove it in the Pro version. */
+        if ( !RSFFT_IS_PRO ) {
+            wp_enqueue_script( 'rsfft_admin_limiter', RSFFT_URI . '/js/rsfft-admin-limiter.js', '', 1.0, true );
+        }
+              
     }//ends if
-     
+    
+    //enqueue the js needed for form validation and limiting in free version
+    if ( !RSFFT_IS_PRO ) {
+        wp_enqueue_script( 'rsfft_widget_limiter', RSFFT_URI . '/js/rsfft-widget-limiter.js', '', 1.0, true );
+    }
+    
 }//ends rsfft_enqueue_admin_scripts
 
 

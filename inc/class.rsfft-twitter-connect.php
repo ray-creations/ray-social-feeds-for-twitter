@@ -140,27 +140,75 @@ class Rsfft_Twitter_Connect {
         );
         
         if ( !is_null( $this->rsfft_get_fields ) ) {
+            
+            // $this->rsfft_get_fields format: ?screen_name=raycreations&count=10&exclude_replies=1&include_rts=0&tweet_mode=extended
             //removing question mark and at the same time converting to an array with key-value pairs
             $get_fields = str_replace( '?', '', explode( '&', $this->rsfft_get_fields ) );
+            
+            /*
+             * After explode and str_replace we get this.
+             * $get_fields is an array, and has a value similar to below:
+             * {
+             *      0: "screen_name=raycreations",
+             *      1: "count=10",
+             *      2: "exclude_replies=1",
+             *      3: "include_rts=0",
+             *      4: "tweet_mode=extended"
+             *   },
+             */
             
             foreach( $get_fields as $field ) {
                 
                 /*
                  * splitting the query variables into key-value pair
                  * and adding them back to the $oauth_credentials variable
+                 * 
+                 * after explode, "$split" has similar value to this:
+                 * Array ( 
+                 *          [0] => screen_name, 
+                 *          [1] => raycreations 
+                 * )
                  */
                 $split = explode( '=', $field );
                 $oauth_credentials[ $split[0] ] = $split[1];
             }
             
-            
+            /*
+             * After the above foreach loop $oauth_credentials has value similar to below:
+             * 
+             * Array (
+             *      "oauth_consumer_key" => "*******b2xR5***********",
+             *      "oauth_nonce" => "1649754557",
+             *      "oauth_signature_method" => "HMAC-SHA1",
+             *      "oauth_token" => "23152579-TIIy0wjF4JqxmbvpSt6yhgteDWRcf80t6qBnHmuAt",
+             *      "oauth_timestamp" => "1649754557",
+             *      "oauth_version" => "1.0",
+             *      "screen_name" => "raycreations",
+             *      "count" => "10",
+             *      "exclude_replies" => "1",
+             *      "include_rts" => "0",
+             *      "tweet_mode" => "extended"
+             *  )
+             */
             
         }//edns if
         
-        /* Generate the signature base string */
+        /*
+         * The returned URL is rawurlencode() ed.
+         * But without rawurlencode() funtion, the returned '$signature_base_string' looks similar to this:
+         * 
+         * GET&https://api.twitter.com/1.1/statuses/user_timeline.json&count=10&exclude_replies=1&include_rts=0
+         * &oauth_consumer_key=LiuyhTjtkjiuhgtfrERDsSPvKWM1Hu&oauth_nonce=1649757862&oauth_signature_method=HMAC-SHA1
+         * &oauth_timestamp=1649757862&oauth_token=81418579-TIIy0wjF4JqxmbvpStQ2u3FeDWRcf80t6qBnHmuAt
+         * &oauth_version=1.0&screen_name=raycreations&tweet_mode=extended
+         */
         $signature_base_string = $this->rsfft_build_signature_base_string( $request_method, $oauth_credentials );
-        
-        /* Finally create the OAuth Signature and add it to the $oauth_credentials array */
+                
+        /* 
+         * Finally create the OAuth Signature. i.e. encodes & encrypt the '$signature_base_string'
+         * and adds it to the $oauth_credentials array 
+         * 
+         */
         $oauth_credentials[ 'oauth_signature' ] = $this->rsfft_generate_oauth_signature( $signature_base_string );
         
         
@@ -196,6 +244,8 @@ class Rsfft_Twitter_Connect {
     
     /**
      * Store the GET Parameters
+     * $get_field format: 
+     * ?screen_name=raycreations&count=10&exclude_replies=1&include_rts=0&tweet_mode=extended
      * 
      * @since 1.2
      * 
@@ -242,14 +292,41 @@ class Rsfft_Twitter_Connect {
             $string_params[] = "$key=$value";
         }
         
-        return "$request_method&" . rawurlencode( $request_url ) . '&' . rawurlencode(implode( '&', $string_params) );
+        /*
+         * $string_params now has a value similar to below:
+         * 
+         * {
+         *      0: "count=10",
+         *      1: "exclude_replies=1",
+         *      2: "include_rts=0",
+         *      3: "oauth_consumer_key=Djttykb2xR5sSPvKWMs9uu1Hu",
+         *      4: "oauth_nonce=1649757089",
+         *      5: "oauth_signature_method=HMAC-SHA1",
+         *      6: "oauth_timestamp=1649757089",
+         *      7: "oauth_token=81418579-TIIy0wjF4JqxmbvpStQ2u3FeDWRcf80t6qBnHmuAt",
+         *      8: "oauth_version=1.0",
+         *      9: "screen_name=raycreations",
+         *      10: "tweet_mode=extended"
+         *  }
+         */
         
+        /*
+         * Without rawurlencode() funtion, the returned URL looks similar to this:
+         * GET&https://api.twitter.com/1.1/statuses/user_timeline.json&count=10&exclude_replies=1&include_rts=0
+         * &oauth_consumer_key=LiuyhTjtkjiuhgtfrERDsSPvKWM1Hu&oauth_nonce=1649757862&oauth_signature_method=HMAC-SHA1
+         * &oauth_timestamp=1649757862&oauth_token=81418579-TIIy0wjF4JqxmbvpStQ2u3FeDWRcf80t6qBnHmuAt
+         * &oauth_version=1.0&screen_name=raycreations&tweet_mode=extended
+         */
+        
+        return "$request_method&" . rawurlencode( $request_url ) . '&' . rawurlencode(implode( '&', $string_params) );
+
     }//ends rsfft_build_signature_base_string
     
     
     
     /*
      * Accepts the signature base string and generates the OAuth Signature
+     * This function encodes & encrypts the data.
      * 
      * @since 1.2
      * 
@@ -283,10 +360,36 @@ class Rsfft_Twitter_Connect {
         $oauth_params = array();
         foreach ( $this->rsfft_oauth_details as $key => $value ) {
             
-            $oauth_params[] = "$key=\"" . rawurlencode( $value ) . '"';
+            $oauth_params[] = "$key=\"" . rawurlencode( $value ) . "\"";
         }
         
+        /*
+         * $oauth_params now has value similar to the this:
+         * {
+         *      0: "oauth_consumer_key="Mjtnjhb6Y65xR5sSPvKujhuy6hg1Hu"",
+         *      1: "oauth_nonce="1649764622"",
+         *      2: "oauth_signature_method="HMAC-SHA1"",
+         *      3: "oauth_token="81418579-LIYy0wjF4JqmnjhgbvfdtQ2u3FeDWR98980t6qBnJmuAt"",
+         *      4: "oauth_timestamp="1649764622"",
+         *      5: "oauth_version="1.0"",
+         *      6: "screen_name="raycreations"",
+         *      7: "count="10"",
+         *      8: "exclude_replies="1"",
+         *      9: "include_rts="0"",
+         *      10: "tweet_mode="extended"",
+         *      11: "oauth_signature="jhe8GeTuvZ9nO7HAUId7EfDeB%2BU%3D""
+         * }
+         */
+        
         $header .= implode( ', ', $oauth_params );
+                
+        /*
+         * After implode function, $header will have a similar value as below:
+         * OAuth oauth_consumer_key="Mjtnjhb6Y65xR5sSPvKujhuy6hg1Hu", oauth_nonce="1649768999", 
+         * oauth_signature_method="HMAC-SHA1", oauth_token="81418579-LIYy0wjF4JqmnjhgbvfdtQ2u3FeDWR98980t6qBnJmuAt", 
+         * oauth_timestamp="1649768999", oauth_version="1.0", screen_name="raycreations", count="10", 
+         * exclude_replies="1", include_rts="0", tweet_mode="extended", oauth_signature="caQJr9ZKPIDX5HUSGIMM8xJgA6s%3D"
+         */
         
         return $header;
         

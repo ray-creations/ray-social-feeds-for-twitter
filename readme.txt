@@ -3,21 +3,21 @@ Contributors: raycreations, amritray, aparna19
 Tags: Twitter Feeds, Twitter Feeds WordPress, Twitter Feed, Twitter Widget, Twitter Gallery, Ray Social Feeds For Twitter
 Requires at least: 4.0 
 Tested up to: 5.9
-Stable tag: 1.2.3
+Stable tag: 1.2.4
 Requires PHP: 5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Display clean, beautiful, highly customizable, responsive, yet powerful twitter feeds on your website from any Twitter account or your own Mentions timeline.
+Display clean, beautiful, highly customizable, responsive, yet powerful twitter feeds on your website from any Twitter account or your own Mentions timeline. Twitter feed based on **Keyword Search & Hashtags** is also available now.
 
 == Description ==
-**Ray Social Feeds For Twitter** lets you display Twitter feeds beautifully on your website. You can display your own mentions timeline or tweets from any Twitter user. The feed is highly customizable and can be displayed anywhere on your site in a **List** or **Slider** format, using either shortcode or widget. 
+**Ray Social Feeds For Twitter** lets you display Twitter feeds beautifully on your website. You can display your own mentions timeline, tweets from any Twitter user, Twitter feed based on keywords and Feed based on Hashtags. The feed is highly customizable and can be displayed anywhere on your site in a **List**, **Slider** or **Masonry** format, using either Shortcodes or Widgets. 
 
 You can **define defaults** on your Settings page. And can override those settings by specifying custom attributes in your shortcodes. Every widget & shortcode can also have its own unique settings.
 
 Any page can have **multiple shortcodes and widgets**. And each can have its own custom specific settings. So each shortcode or widget can fetch unique feeds.
 
-The generated feeds are **mobile-friendly & responsive** and adapts to the width of the container in which they are placed. Also, it automatically adapts the styling of your website.
+The generated feeds are **mobile-friendly & responsive** and adapts to the width of the container in which they are placed. Also, it automatically adapts to the styling of your website.
 
 You get a "Styling tab" to control the look of the different components of the Twitter feed. You can change font size, color, font weight, inherit from theme. Tweet header, the tweet itself, and the Tweet footer can have separate styling.
 
@@ -37,6 +37,12 @@ Super easy to set up and install. **Generate your access tokens in a couple of c
 *   Use the shortcode **[my_custom_tweets]** anywhere in your content area. Or use our customizable "widget" to display Twitter feeds in your site's sidebars & footers.
 
 *   Display your **Mentions** timeline. Or use any Twitter "screen name" to create your feeds.
+
+*   Generate Twitter feeds based on keywords or Hashtags.
+
+*   Display formats available: List, Masonry, Slider 1 Column.
+
+*   Choose the number of tweets in a row for the Masonry format.
 
 *   **Multiple shortcodes & widgets** can be used on a single page or on different site pages.
 
@@ -58,6 +64,8 @@ Super easy to set up and install. **Generate your access tokens in a couple of c
 
 *   Also, whenever you save the plugin settings page, the tweets cache is automatically cleared to reflect the changes made. And new tweets are fetched from Twitter again.
 
+*   Shortcodes automatically refresh when you make changes to them or the page on which they exist.
+
 *   Dedicated Styling tab to control the looks of different Tweet components.
 
 *   Our Twitter plugin **supports extended tweets** and fetches the complete tweet from Twitter.
@@ -73,15 +81,12 @@ See demo [here](https://www.raycreations.net/ray-social-feeds-twitter/free-demo/
 
 == Pro Version ==
 
-You can opt for our [Pro Version](https://www.raycreations.net/ray-social-feeds-twitter/) which includes many more features.
+You can opt for our [Pro Version](https://www.raycreations.net/ray-social-feeds-twitter/) which includes these additional features.
 
 *   Display images & videos in your feed.
-*   Display your tweets in Masonry & 2-Column Slider format.
-*   Choose the number of tweets in a row for the Masonry format.
+*   Display your tweets in List, Masonry, Slider 1 Column, and 2-Column Slider format.
 *   Display Hashtags timeline, Search timeline, along with User timeline, and Mentions timeline.
-*   Remove links from Hashtags for a cleaner look.
-*   Remove links from Mentions.
-*   Remove linking from external links.
+*   Fetches multiple Photos from Tweet.
 *   And of course, the pro version helps us maintain the free version of the plugin.
 *   You also get priority support with our pro version.
 
@@ -169,13 +174,30 @@ We want to provide the best possible user experience for our plugin users. We wo
 
 == Upgrade Notice ==
 
-= 1.2.3 =
-* Shortcode/s tweets cache is automatically deleted and rebuilt when the page it is on is saved/updated.
-* So any changes made to the shortcode attributes are immediately reflected in the Twitter feed.
-* Also optimized code for tweets cache management.
+= 1.2.4 =
+* Display styles now available: List, Masonry, and Slider 1 Column.
+* Hashtags timeline now available. Twitter feed based on hashtags.
+* Search timeline now available. Twitter feed based on multiple keyword searches.
+* Remove Links from Hashtags feature now available.
+* Remove Links from Mentions feature now available.
+* Remove External Links feature now available.
+* Line breaks are maintained in the Tweet now.
+* Shortcodes automatically refresh when you make changes to them or the page on which they exist.
+* Retweets are now formatted/display the same as on Twitter.
 
 
 == Changelog ==
+
+= 1.2.4 =
+* Display styles now available: List, Masonry, and Slider 1 Column.
+* Hashtags timeline now available. Twitter feed based on hashtags.
+* Search timeline now available. Twitter feed based on multiple keyword searches.
+* Remove Links from Hashtags feature now available.
+* Remove Links from Mentions feature now available.
+* Remove External Links feature now available.
+* Line breaks are maintained in the Tweet now.
+* Shortcodes automatically refresh when you make changes to them or the page on which they exist.
+* Retweets are now formatted/display the same as on Twitter.
 
 = 1.2.3 =
 * Changed plugin prefix from "rc_myctf_" to "rsfft_".

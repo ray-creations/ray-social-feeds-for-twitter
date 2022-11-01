@@ -41,7 +41,7 @@ class Rsfft_Widget extends WP_Widget {
     
         parent::__construct(
                 'rsfft_tweets_widget',               //Base ID
-                'My Twitter Feed', 
+                'Ray Social Feeds Twitter', 
                 array(
                         'classname' => 'rsfft_tweets_widget_class',
                         'description' => 'Displays your Twitter feed',
@@ -72,7 +72,7 @@ class Rsfft_Widget extends WP_Widget {
             'search_string' => 'desert flower',
             'display_style' => 'display_list',
             'hide_media' => 'off',
-            'count' => '4',
+            'count' => '10',
             'number_of_tweets_in_row' => '2',
             'exclude_replies' => 'on',
             'include_rts' => 'off'
@@ -102,9 +102,9 @@ class Rsfft_Widget extends WP_Widget {
                        value="user_timeline" <?php checked( $feed_type, 'user_timeline' ); ?>> user_timeline </input><br>
                 <input type="radio" name="<?php echo esc_attr( $this->get_field_name( 'feed_type' ) ); ?>" 
                        value="mentions_timeline" <?php checked( $feed_type, 'mentions_timeline' ); ?>> mentions_timeline </input><br>
-                <input type="radio" disabled name="<?php echo esc_attr( $this->get_field_name( 'feed_type' ) ); ?>"
+                <input type="radio" name="<?php echo esc_attr( $this->get_field_name( 'feed_type' ) ); ?>"
                        value="hashtags_timeline" <?php checked( $feed_type, 'hashtags_timeline' ); ?>> hashtags_timeline </input><br>
-                <input type="radio" disabled name="<?php echo esc_attr( $this->get_field_name( 'feed_type' ) ); ?>"
+                <input type="radio" name="<?php echo esc_attr( $this->get_field_name( 'feed_type' ) ); ?>"
                        value="search_timeline" <?php checked( $feed_type, 'search_timeline'); ?>> search_timeline </input>
                 
             </p>
@@ -113,22 +113,24 @@ class Rsfft_Widget extends WP_Widget {
                                     value="<?php echo esc_attr( $screen_name ); ?>" >
             </p>
             <p>
-                Hashtags: <input class="widefat" disabled type="text" name="<?php echo esc_attr( $this->get_field_name( 'hashtags' ) ); ?>"
+                Hashtags: <input class="widefat" type="text" name="<?php echo esc_attr( $this->get_field_name( 'hashtags' ) ); ?>"
                                  value="<?php echo esc_attr( $hashtags ); ?>" >
             </p>
             <p>
-                Search Term: <input class="widefat" disabled type="text" name="<?php echo esc_attr( $this->get_field_name( 'search_string' ) ); ?>"
+                Search Term: <input class="widefat" type="text" name="<?php echo esc_attr( $this->get_field_name( 'search_string' ) ); ?>"
                                     value="<?php echo esc_attr( $search_string ); ?>" >
             </p>
             <p>
                 Display Style:
                 <select class="widefat" name="<?php echo esc_attr( $this->get_field_name( 'display_style' ) ); ?>" >
                     <option value="display_list" <?php selected( $display_style, 'display_list' ); ?>><?php echo "List" ?></option>
+                    <option value="display_masonry" <?php selected( $display_style, 'display_masonry' ); ?>><?php echo "Masonry" ?></option>
                     <option value="display_slider_1_col" <?php selected( $display_style, 'display_slider_1_col' ); ?>><?php echo "Slider 1 Column" ?></option>
+                    <option value="display_slider_2_col" <?php selected( $display_style, 'display_slider_2_col' ); ?>><?php echo "Slider 2 Column" ?></option>
                 </select>
             </p>
             <p>
-                Hide Media: <input type="checkbox" disabled name="<?php echo esc_attr( $this->get_field_name( 'hide_media' ) ); ?>"
+                Hide Media: <input type="checkbox" class="widget_hide_media" name="<?php echo esc_attr( $this->get_field_name( 'hide_media' ) ); ?>"
                                         <?php checked( $hide_media, 'on' ); ?>>
             </p>
             <p>
@@ -147,7 +149,7 @@ class Rsfft_Widget extends WP_Widget {
             </p>
             <p>
                 Number of Tweets in row:
-                <select class="widefat" disabled name="<?php echo esc_attr( $this->get_field_name( 'number_of_tweets_in_row' ) ); ?>">
+                <select class="widefat" name="<?php echo esc_attr( $this->get_field_name( 'number_of_tweets_in_row' ) ); ?>">
                     <?php
                     for ( $i=1; $i <=5; $i++ ) {
                     ?>
@@ -267,10 +269,11 @@ class Rsfft_Widget extends WP_Widget {
      */
     private function rsfft_construct_shortcode_for_widget( $instance ) {
         
-        /* adding widget's id with the page id to make the shortcode_id unique on the page */
-        global $post;
-        $this->shortcode_id = $this->id . $post->ID;
-        //$shortcode_id = $this->id . $post->ID;
+        /* 
+         * adding widget's id as the shortcode id
+         * since version 1.2.4 removed the $post->ID as part of the widget shortcode id 
+         */
+        $this->shortcode_id = $this->id;
         
         //load the widget settings
         $screen_name = !empty( $instance[ 'screen_name' ] ) ? wp_strip_all_tags( $instance[ 'screen_name' ] ) : 'raycreations';

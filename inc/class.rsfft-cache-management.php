@@ -72,6 +72,7 @@ class Rsfft_Cache {
      * Otherwise returns false
      * 
      * Id format: id="post_id_53_1" (post_id + post_id + unique shortcode postion on page)
+     * Id format for Widgets: id = "rsfft_tweets_widget-2"
      * 
      * @since 1.0
      * @access public

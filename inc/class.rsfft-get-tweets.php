@@ -37,31 +37,27 @@ class Rsfft_Tweets {
      * @since 1.0
      * @access public
      * 
-     * @param $atts     array   Attributes sent as part of the shortcode
      * @return $tweets  object  Returns tweets as object
      */
-    public static function rsfft_fetch_tweets( $atts ) {
+    public static function rsfft_fetch_tweets() {
         
         /* 
          * check to see if Tweets are stored in the Transient 
          * if not fetch live
          */
-        
-        $id = !empty( $atts[ 'id' ] ) ? wp_strip_all_tags( $atts[ 'id' ] ) : '';
+
+        $scode_id = !empty( Rsfft::$merged_scode_atts[ 'id' ] ) ? wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'id' ] ) : '';
         $rsfft_cache = new Rsfft_Cache();
         
-        if ( false === ( $rsfft_cache->rsfft_get_cache( $id ) ) ) {
+        if ( false === ( $rsfft_cache->rsfft_get_cache( $scode_id ) ) ) {
             
-            /* 
-             * Fetch fresh Tweets as stored tweets have expired for this shortcode id
-             */
-            
+            //Fetch fresh Tweets as stored tweets have expired for this shortcode id
             $raw_tweets = Rsfft_Tweets::rsfft_fetch_live_tweets();
             
         } else {
             
             /* Retrieve the stored tweets or "false" if error */
-            $raw_tweets = $rsfft_cache->rsfft_get_cache( $id );
+            $raw_tweets = $rsfft_cache->rsfft_get_cache( $scode_id );
 
         }
 
@@ -99,12 +95,11 @@ class Rsfft_Tweets {
     
     
     /*
-     * Function to fetch tweets either live from Twitter or from Transient
+     * Function to fetch fresh tweets from Twitter
      * 
      * @since 1.0
      * @access public
      * 
-     * @param $atts array   Attributes as set in the shortcode by user
      * @return $tweets  object  List of tweets fetched from Twitter
      */
     public static function rsfft_fetch_live_tweets() {
@@ -133,9 +128,6 @@ class Rsfft_Tweets {
         /* This function constructs and retuns the appropriate GET fields to query Twiiter */
         $get_fields_string = strip_tags( Rsfft_Tweets::rsfft_construct_get_fields_string() );
         
-        //echo 'get_field_string value: ' . $get_fields_string . '<br>';
-        //wp_die();
-        
         $request_method = 'GET';
         
         /* get feed_type */
@@ -144,6 +136,11 @@ class Rsfft_Tweets {
         
         include_once( RSFFT_DIR . 'inc/class.rsfft-twitter-connect.php' );
         $twitter_instance = new Rsfft_Twitter_Connect( $settings );
+        
+        /*
+         * $get_field_format:
+         * ?screen_name=raycreations&count=10&exclude_replies=1&include_rts=0&tweet_mode=extended
+         */
         
         $response = $twitter_instance
                 ->rsfft_set_get_field( $get_fields_string )
@@ -197,7 +194,6 @@ class Rsfft_Tweets {
     public static function rsfft_construct_get_fields_string() {
         
         /* merged attributes and option values */
-        //$merged_atts_options = Rsfft::rsfft_fetch_merged_atts_options( $atts );
         $merged_atts_options = Rsfft::$merged_scode_atts;
         
         /* If there was an error, return false */
@@ -205,10 +201,6 @@ class Rsfft_Tweets {
             return FALSE;
         }
         
-        /* Restricting count to 10 only for Free version */
-        //if ( $merged_atts_options[ 'count' ] > 10 ) {
-            //$merged_atts_options[ 'count' ] = 10;
-        //}
         
         /* Retrieve options from merged attributes & options variable */
         //$id = esc_attr( $merged_atts_options[ 'id' ] );
@@ -223,9 +215,7 @@ class Rsfft_Tweets {
         $hashtags_str = sanitize_text_field( $merged_atts_options[ 'hashtags' ] );
         $search_string = sanitize_text_field( $merged_atts_options[ 'search_string' ] );
         
-        
-        //echo 'Echoed feed type: ' . $feed_type . '<br><br>';
-        
+                
         /* if feed_type is 'user_timeline' */
         if ( $feed_type == 'user_timeline' ) {
             
@@ -263,9 +253,7 @@ class Rsfft_Tweets {
             } else {
                 
                 $get_fields .= 'q=' . rawurlencode( $search_string );
-                
-                //echo 'Fetched Search Tweets: ' . $search_string . '<br><br>';
-                
+                                
             }
             
             if ( $include_photos && !$include_videos ) {

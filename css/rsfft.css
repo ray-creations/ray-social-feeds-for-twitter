@@ -60,9 +60,15 @@ and open the template in the editor.
 }
 
 .rsfft_tweets_wrap .twitter_header_meta {
-    margin-bottom: 15px;
+    margin-bottom: 4px;
     word-break: break-word;
     overflow: hidden;
+}
+
+.display_masonry .rsfft-retweet-div {
+    margin-left: 0px;
+    margin-top: 0px;
+    margin-bottom: 10px;
 }
 
 .display_masonry .twitter_header_meta{
@@ -111,6 +117,7 @@ and open the template in the editor.
 
 .link_details_wrap img {
     border-radius: 15px;
+    max-width: 100%;
 }
 
 .link_details_wrap .play-pause-button {
@@ -175,7 +182,7 @@ and open the template in the editor.
 }
 
 .rsfft_tweets_wrap.display_slider_2_col .tweet_wrapper {
-    width: 72%;
+    width: 68%;
     display: inline-block;
     vertical-align: middle;
 }
@@ -185,10 +192,25 @@ and open the template in the editor.
 }
 
 .rsfft_tweets_wrap.display_slider_2_col .tweet-media {
-    width: 21%;
+    width: 25%;
     margin-right: 7%;
     display: inline-block;
     vertical-align: middle;
+}
+
+.rsfft_tweets_wrap.display_slider_2_col .tweet-media-2 {
+    display: flex;
+    float: left;
+}
+
+.rsfft_tweets_wrap.display_slider_2_col .tweet-media-3 {
+    display: grid;
+    float: left;
+}
+
+.rsfft_tweets_wrap.display_slider_2_col .tweet-media-4 {
+    display: flex;
+    float: left;
 }
 
 .rsfft_tweets_wrap.display_slider_2_col .twitter_profile_img,
@@ -297,6 +319,33 @@ and open the template in the editor.
     cursor: default;
 }
 
+.rsfft-retweet-div{
+    margin-top: -24px;
+    margin-left: -28px;
+    display: block;
+    position: relative;
+}
+
+.rsfft-retweet-div .rsftt-retweet-sign-top {
+    height: 1.0em;
+    vertical-align: middle;
+    margin-right: 14px;
+    fill: currentColor;
+    opacity: .5;
+}
+
+.rsfft-retweet-div .rsfft-retweeter-screenname a {
+    text-decoration: none;
+    color: inherit;
+    opacity: .5;
+    border-bottom: 0;
+    box-shadow: none;
+}
+
+.rsfft-retweet-div .rsfft-retweeter-screenname {
+    font-size: 75%;
+}
+
 .verified_badge {
     margin-left: 2px;
     color: rgba(29,161,242,1.00);
@@ -389,7 +438,7 @@ svg:not(:root) {
     width: 35px; height: 35px;
     position: relative; float: left;
     left: auto; right: auto; top: auto;
-    margin: -7px 13px 0 0;
+    margin: -3px 13px 0 0;
 } 
 
 .display_slider_1_col .tweet_wrapper .twitter_header_meta,
@@ -439,6 +488,16 @@ svg:not(:root) {
     left: 0;
     top: 0;
     /*display: none;*/
+    overflow: hidden;
+}
+
+.rsfft_tweets_wrap.display_slider_2_col.slider .slide {
+    display: flex;
+    align-items: center;
+}
+
+.rsfft_tweets_wrap.display_slider_1_col.slider .slide {
+
 }
 
 .rsfft_tweets_wrap.slider .slide:after {
@@ -450,6 +509,11 @@ svg:not(:root) {
     display: block;
 }
 
+.rsfft_tweets_wrap.display_slider_2_col.slider .slide:first-child {
+    /* display: block; */
+    display: flex;
+}
+
 .rsfft_tweets_wrap.slider .slide .text {
     width: 100%;
     height: 100%;
@@ -458,6 +522,11 @@ svg:not(:root) {
     text-transform: uppercase;
     font-weight: bold;
     text-align: center;
+}
+
+.rsfft_tweets_wrap.slider .slide .rsfft-retweet-div {
+    margin-left: -3px;
+    padding-top: 15px;
 }
 
 .rsfft_tweets_wrap.slider .img {
@@ -625,7 +694,121 @@ svg:not(:root) {
     width: auto;
 }
 
+/* 
+* ===========================
+* Twitter - multiple image style 
+* ========================= */
+.tweet-media-1,
+.tweet-media-2,
+.tweet-media-3,
+.tweet-media-4 {
+    margin-top: 10px;
+}
 
+.tweet-media-2 {
+    display: flex;
+    flex-flow: row;
+}
+
+.tweet-media-2 .link_details_wrap {
+    margin: 1px;
+    width: 50%;
+    vertical-align: top;
+}
+
+.tweet-media-2 .my-tweet-photo-1 img {
+    border-radius: 15px 0 0 15px;
+    width: 100%;
+    height: 100%;
+}
+
+.tweet-media-2 .my-tweet-photo-2 img {
+    border-radius: 0 15px 15px 0;
+    width: 100%;
+    height: 100%;
+}
+
+.tweet-media.tweet-media-3 {
+    display: grid;
+    grid-template-areas:
+        'photo1 photo1 photo2'
+        'photo1 photo1 photo3';
+}
+
+.tweet-media-3 .my-tweet-photo-1 {
+    grid-area: photo1;
+    margin: 1px 1px 1px 1px;
+}
+
+.tweet-media-3 .my-tweet-photo-2 {
+    grid-area: photo2;
+    margin: 1px;
+}
+
+.tweet-media-3 .my-tweet-photo-3 {
+    grid-area: photo3;
+    margin: 1px;
+}
+
+.tweet-media-3 .my-tweet-photo-1 img {
+    width: 100%;
+    height: 100%;
+    border-radius: 15px 0 0 15px;
+}
+
+.tweet-media-3 .my-tweet-photo-2 img {
+    width: 100%;
+    height: 100%;
+    border-radius: 0 15px 0 0;
+}
+
+.tweet-media-3 .my-tweet-photo-3 img {
+    width: 100%;
+    height: 100%;
+    border-radius: 0 0 15px 0;
+}
+
+.tweet-media-4 {
+    display: flex;
+    flex-flow: row;
+    flex-wrap: wrap;
+}
+
+.tweet-media-4 .my-tweet-photo-1,
+.tweet-media-4 .my-tweet-photo-2,
+.tweet-media-4 .my-tweet-photo-3,
+.tweet-media-4 .my-tweet-photo-4 {
+    width: 49%;
+    padding: 1px;
+}
+
+.tweet-media-4 .my-tweet-photo-1 img {
+    margin: 1px;
+    border-radius: 15px 0 0 0;
+    width: 100%;
+    height: 100%;
+}
+
+.tweet-media-4 .my-tweet-photo-2 img {
+    margin: 1px;
+    border-radius: 0 15px 0 0;
+    width: 100%;
+    height: 100%;
+}
+
+.tweet-media-4 .my-tweet-photo-3 img {
+    margin: 1px;
+    border-radius: 0 0 0 15px;
+    width: 100%;
+    height: 100%;
+}
+
+.tweet-media-4 .my-tweet-photo-4 img {
+    margin: 1px;
+    border-radius: 0 0 15px 0;
+    width: 100%;
+    height: 100%;
+}
 
 /* For Mobile */
 @media screen and (min-width: 800px) {
@@ -703,6 +886,11 @@ svg:not(:root) {
     .rsfft_tweets_wrap.display_slider_2_col .slide {
         padding: 20px;
         border-radius: 15px;
+        display: block;
+    }
+    
+    .rsfft_tweets_wrap.display_slider_2_col .slide:first-child {
+        display: block;
     }
     
     .rsfft_tweets_wrap.display_slider_2_col .tweet_wrapper {

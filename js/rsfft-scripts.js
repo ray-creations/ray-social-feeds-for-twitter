@@ -11,6 +11,8 @@
 
 jQuery(document).ready(function($){
     
+    'use strict';
+    
     /**
      *  The code below handles the media pause/play buttons
      *  for videos for the native HTML5 video player

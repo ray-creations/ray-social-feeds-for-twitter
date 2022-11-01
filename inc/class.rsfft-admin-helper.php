@@ -191,8 +191,8 @@ class Rsfft_Admin_Helper {
      * Functions & callbacks for the Customize 'Feed Settings' section 
      */
     public static function rsfft_feed_settings_section_callback(){
-        echo "Settings for the type of feed you want to display on your site. These would be your default settings. "
-        . "You would be able to set different options using shortcodes. ";
+        echo "These are default settings for your shortcodes. "
+        . "What you specify here automatically gets applied as default attributes to your shortcodes. ";
     }
     
     /* Function to output the html for feed type radio buttons  */
@@ -205,8 +205,8 @@ class Rsfft_Admin_Helper {
         // Values are: fixed, percentage
         $html = "<input type='radio' id='user_timeline' name='rsfft_customize_options[feed_type]'" . checked( 'user_timeline', $feed_type, false)  . "value='user_timeline'> User Timeline </input><br>";
         $html .= "<input type='radio' id='mentions_timeline' name='rsfft_customize_options[feed_type]'" . checked( 'mentions_timeline', $feed_type, false)  . "value='mentions_timeline'> Mentions </input><br>";
-        $html .= "<input type='radio' id='hashtags_timeline' name='rsfft_customize_options[feed_type]'" . checked( 'hashtags_timeline', $feed_type, false)  . "value='hashtags_timeline'> Hashtags  </input><span class='rsfft_tip'>(Available in Pro)</span><br>";
-        $html .= "<input type='radio' id='search_timeline' name='rsfft_customize_options[feed_type]'" . checked( 'search_timeline', $feed_type, false)  . "value='search_timeline'> Search </input><span class='rsfft_tip'>(Available in Pro)</span>";
+        $html .= "<input type='radio' id='hashtags_timeline' name='rsfft_customize_options[feed_type]'" . checked( 'hashtags_timeline', $feed_type, false)  . "value='hashtags_timeline'> Hashtags  </input><br>";
+        $html .= "<input type='radio' id='search_timeline' name='rsfft_customize_options[feed_type]'" . checked( 'search_timeline', $feed_type, false)  . "value='search_timeline'> Search </input>";
                
         $html .= "<p><label for='search_timeline'> &nbsp;&nbsp;" . $args[0] . "</label></p>";
         echo $html;   
@@ -230,8 +230,8 @@ class Rsfft_Admin_Helper {
         $options = get_option( 'rsfft_customize_options' );
         $hashtags = isset( $options[ 'hashtags' ] ) ? sanitize_text_field( $options[ 'hashtags' ] ) : 'mountain clouds';
         
-        $html = "<input type='text' class='rsfft-pro-feature' id='rsfft_customize_options[hashtags]' name='rsfft_customize_options[hashtags]' value='$hashtags' />";
-        $html .= "<label for='rsfft_customize_options[hashtags]'> &nbsp; &nbsp;" . $args[0] . "<span class='rsfft_tip'>(Available in Pro)</span></label>";
+        $html = "<input type='text' id='rsfft_customize_options[hashtags]' name='rsfft_customize_options[hashtags]' value='$hashtags' />";
+        $html .= "<label for='rsfft_customize_options[hashtags]'> &nbsp; &nbsp;" . $args[0] . "</label>";
         
         echo $html;
         
@@ -243,7 +243,7 @@ class Rsfft_Admin_Helper {
         $options = get_option( 'rsfft_customize_options' );
         $search_string = isset( $options[ 'search_string' ] ) ? sanitize_text_field( $options[ 'search_string' ] ) : 'fog sunrise';
         
-        $html = "<input type='text' class='rsfft-pro-feature' id='rsfft_customize_options[search_string]' name='rsfft_customize_options[search_string]' value='$search_string' />";
+        $html = "<input type='text' id='rsfft_customize_options[search_string]' name='rsfft_customize_options[search_string]' value='$search_string' />";
         $html .= "<label for='rsfft_customize_options[search_string]'> &nbsp; &nbsp;" . $args[0] . "</label>";
         
         echo $html;
@@ -256,10 +256,10 @@ class Rsfft_Admin_Helper {
         $include_photos = isset( $options[ 'include_photos' ] ) ? strip_tags( $options[ 'include_photos' ] ) : FALSE;
         $include_videos = isset( $options[ 'include_videos' ] ) ? strip_tags( $options[ 'include_videos' ] ) : FALSE;
         
-        $html = '<input type="checkbox" id="include_photos" name="rsfft_customize_options[include_photos]" value="1" ' . checked( 1, $include_photos, false ) . '>';
+        $html = '<input type="checkbox" class="rsfft-pro-feature" id="include_photos" name="rsfft_customize_options[include_photos]" value="1" ' . checked( 1, $include_photos, false ) . '>';
         $html .= '<label for="include_photos"> &nbsp;&nbsp;' . $args[0] . '</label><br>';
         
-        $html .= '<input type="checkbox" id="include_videos" name="rsfft_customize_options[include_videos]" value="1" ' . checked( 1, $include_videos, false ) . '>';
+        $html .= '<input type="checkbox" class="rsfft-pro-feature" id="include_videos" name="rsfft_customize_options[include_videos]" value="1" ' . checked( 1, $include_videos, false ) . '>';
         $html .= '<label for="include_videos"> &nbsp;&nbsp;' . $args[1] . '</label>';
         echo $html;
         
@@ -327,9 +327,9 @@ class Rsfft_Admin_Helper {
         $display_style = isset( $options[ 'display_style' ] ) ? sanitize_text_field( $options[ 'display_style' ] ) : 'display_list';
         
         $html = "<input type='radio' id='display_list' name='rsfft_customize_options[display_style]'" . checked( 'display_list', $display_style, false)  . "value='display_list'> List </input><br>";
-        $html .= "<input type='radio' id='display_masonry' name='rsfft_customize_options[display_style]'" . checked( 'display_masonry', $display_style, false)  . "value='display_masonry'> Masonry </input><span class='rsfft_tip'>(Available in Pro)</span><br>";
+        $html .= "<input type='radio' id='display_masonry' name='rsfft_customize_options[display_style]'" . checked( 'display_masonry', $display_style, false)  . "value='display_masonry'> Masonry </input><br>";
         $html .= "<input type='radio' id='display_slider_1_col' name='rsfft_customize_options[display_style]'" . checked( 'display_slider_1_col', $display_style, false)  . "value='display_slider_1_col'> Slider 1 Column </input><br>";
-        $html .= "<input type='radio' id='display_slider_2_col' name='rsfft_customize_options[display_style]'" . checked( 'display_slider_2_col', $display_style, false)  . "value='display_slider_2_col'> Slider 2 Column </input><span class='rsfft_tip'>(Available in Pro)</span>";
+        $html .= "<input type='radio' class='rsfft-pro-feature' id='display_slider_2_col' name='rsfft_customize_options[display_style]'" . checked( 'display_slider_2_col', $display_style, false)  . "value='display_slider_2_col'> Slider 2 Column </input><span id='display_slider_2_col_pro_warning' class='rsfft_tip'></span>";
         
         $html .= "<p><label for='rsfft_customize_options[display_style]'> &nbsp;&nbsp;" . $args[0] . "</label></p>";
         echo $html;
@@ -342,7 +342,7 @@ class Rsfft_Admin_Helper {
         $options = get_option( 'rsfft_customize_options' );
         $hide_media = isset( $options[ 'hide_media' ] ) ? strip_tags( $options[ 'hide_media' ] ) : 0;
         
-        $html = '<input type="checkbox" id="hide_media" class="hide_media_chk" name="rsfft_customize_options[hide_media]" value="1" ' . checked( 1, $hide_media, false ) . '>';
+        $html = '<input type="checkbox" id="hide_media" class="rsfft-pro-feature" name="rsfft_customize_options[hide_media]" value="1" ' . checked( 1, $hide_media, false ) . '>';
         $html .= '<label for="hide_media"> ' . $args[0] . '</label>';
         
         echo $html;
@@ -424,7 +424,7 @@ class Rsfft_Admin_Helper {
         $remove_links_hashtags = isset( $options[ 'remove_links_hashtags' ] ) ? strip_tags( $options[ 'remove_links_hashtags' ] ) : 0;
         
         $html = '<input type="checkbox" id="remove_links_hashtags" class="remove_links_hashtags_chk" name="rsfft_customize_options[remove_links_hashtags]" value="1" ' . checked( 1, $remove_links_hashtags, false ) . '>';
-        $html .= '<label for="remove_links_hashtags"> ' . $args[0] . '<span class="rsfft_tip">(Available in Pro)</span></label>';
+        $html .= '<label for="remove_links_hashtags"> ' . $args[0] . '</label>';
         
         echo $html;
     }
@@ -437,7 +437,7 @@ class Rsfft_Admin_Helper {
         $remove_links_mentions = isset( $options[ 'remove_links_mentions' ] ) ? strip_tags( $options[ 'remove_links_mentions' ] ) : 0;
         
         $html = '<input type="checkbox" id="remove_links_mentions" class="remove_links_mentions_chk" name="rsfft_customize_options[remove_links_mentions]" value="1" ' . checked( 1, $remove_links_mentions, false ) . '>';
-        $html .= '<label for="remove_links_mentions"> ' . $args[0] . '<span class="rsfft_tip">(Available in Pro)</span></label>';
+        $html .= '<label for="remove_links_mentions"> ' . $args[0] . '</label>';
         
         echo $html;
     }
@@ -450,7 +450,7 @@ class Rsfft_Admin_Helper {
         $remove_ext_links = isset( $options[ 'remove_ext_links' ] ) ? strip_tags( $options[ 'remove_ext_links' ] ) : 0;
         
         $html = '<input type="checkbox" id="remove_ext_links" class="remove_ext_links_chk" name="rsfft_customize_options[remove_ext_links]" value="1" ' . checked( 1, $remove_ext_links, false ) . '>';
-        $html .= '<label for="remove_ext_links"> ' . $args[0] . '<span class="rsfft_tip">(Available in Pro)</span></label>';
+        $html .= '<label for="remove_ext_links"> ' . $args[0] . '</label>';
         
         echo $html;
         
@@ -1849,7 +1849,7 @@ class Rsfft_Admin_Helper {
         if ( $valid[ 'number_of_tweets_in_row' ] < 1 ) {
             
             /*  ensure the minimum value   */
-            $valid[ 'number_of_tweets_in_row' ] = 1;
+            $valid[ 'number_of_tweets_in_row' ] = 3;
             
         } elseif ( $valid[ 'number_of_tweets_in_row' ] > 5 ) {
         
@@ -1863,7 +1863,7 @@ class Rsfft_Admin_Helper {
          * Fixing it between 1-50
          */
         if ( $valid[ 'number_of_tweets' ] < 1 ) {
-            $valid[ 'number_of_tweets' ] = 1;
+            $valid[ 'number_of_tweets' ] = 5;
         }elseif ( $valid[ 'number_of_tweets' ] > 50 ){
             $valid[ 'number_of_tweets' ] = 50;
         }
@@ -2031,7 +2031,7 @@ class Rsfft_Admin_Helper {
     }//ends rsfft_style_validate_options
     
     
-    
+
     /*
      * Function to reset Tweets visibility options
      * 

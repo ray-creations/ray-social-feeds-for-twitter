@@ -70,6 +70,17 @@ class Rsfft {
     public static $merged_scode_atts = array();
     
     
+    /*
+     * Array containing Tweet details like, is_retweet, retweet_user user object
+     * 
+     * It could be used to hold other items if required later on.
+     * 
+     * @since 1.2.4
+     * @access public
+     */
+    public static $tweet_details = array();
+    
+    
     /**
      * Check whether the Class has been initialized
      * 
@@ -121,24 +132,27 @@ class Rsfft {
             return $error_html;
         }
         
-        Rsfft::$scode_atts = $atts;                                                          //save $atts
-        Rsfft::$merged_scode_atts = Rsfft::rsfft_fetch_merged_atts_options( $atts );   //merged options
-        Rsfft::rsfft_reset_settings_reserved_for_pro();                                   //resets options reserved for pro in shortcode
-        $display_style = Rsfft::$merged_scode_atts[ 'display_style' ];                       //display_style for this shortcode
+        Rsfft::$scode_atts = Rsfft::rsfft_sanitize_atts($atts);                                     //save sanitized & validated $atts
+        Rsfft::$merged_scode_atts = Rsfft::rsfft_fetch_merged_atts_options( Rsfft::$scode_atts );         //merged options
+        if ( !RSFFT_IS_PRO ) {
+            Rsfft::rsfft_reset_settings_reserved_for_pro();                                               //resets options reserved for pro in shortcode
+        }                                                
+        $display_style = Rsfft::$merged_scode_atts[ 'display_style' ];                                    //display_style for this shortcode
         
-        //print_r( Rsfft::$merged_scode_atts );
-        //wp_die();
-        
+
         /*
          * add/update the $shortcode_id and its corresponding $transient_name 
          * to the option 'rsfft_scodes_transients' options as key => value pair
          */
-        $scode_id = strip_tags( $atts['id'] );
+        $scode_id = strip_tags( Rsfft::$merged_scode_atts[ 'id' ] );
         $rsfft_cache = new Rsfft_Cache();
         $rsfft_cache->rsfft_add_update_transient_name_to_options( $scode_id );
         
         /* Fetch Tweets */
-        $tweets = Rsfft_Tweets::rsfft_fetch_tweets( $atts );
+        $tweets = Rsfft_Tweets::rsfft_fetch_tweets();
+        
+//        print_r( $tweets );
+//        wp_die();
         
         /* If error fetching tweets, display the error html box instead of the tweets */
         if ( $tweets === false ) {
@@ -174,25 +188,21 @@ class Rsfft {
      */
     public static function rsfft_add_links_to_tweet_entities( $tweet, $text ) {
         
-        /* Make sure the external links array is always empty when the loop starts for each tweet */
-        Rsfft::$external_url = array();
-        //$external_url = array();
+        
         
         //check if links needs to be removed from mentions & hashtags
-         $remove_links_hashtags = Rsfft::$merged_scode_atts[ 'remove_links_hashtags' ];
+        $remove_links_hashtags = Rsfft::$merged_scode_atts[ 'remove_links_hashtags' ];
         $remove_links_mentions = Rsfft::$merged_scode_atts[ 'remove_links_mentions' ];
+        $remove_ext_links = Rsfft::$merged_scode_atts[ 'remove_ext_links' ];
+        $nofollow_ext_links = Rsfft::$merged_scode_atts[ 'nofollow_ext_links' ];
+        $nofollow = $nofollow_ext_links ? ' nofollow' : '';
         
         
         foreach( $tweet->{ 'entities' } as $type => $entity ){
-            if( $type == 'urls' ){
+            if( $type == 'urls' && !$remove_ext_links ){
                 foreach( $entity as $j => $url ){
-                    $update_with = '<a href="' . $url->{ 'url' } . '" target="_blank" title="' . $url->{ 'expanded_url' } . '">' . $url->{ 'display_url' } . '</a>';
-                    $text = str_replace( $url->{ 'url' }, $update_with, $text );
-
-                    /* Store the URLs in an array */
-                    Rsfft::$external_url[] = $url->{ 'expanded_url' };
-                    //$external_url[] = $url->{ 'expanded_url' };
-
+                    $update_with = '<a href="' . $url->{ 'url' } . '" target="_blank" rel="noreferrer' . $nofollow . '" title="' . $url->{ 'expanded_url' } . '">' . $url->{ 'display_url' } . '</a>';
+                    $text = str_replace( $url->{ 'display_url' }, $update_with, $text );
                 } 
             } else if( $type == 'hashtags' && !$remove_links_hashtags ){
                 foreach( $entity as $j => $hashtag ){
@@ -225,118 +235,202 @@ class Rsfft {
      * @return string
      */
     public static function rsfft_get_media_display_html( $tweet ){
-              
-        /* 
-         * check whether user has opted to hide media or not
-         * if TRUE, then simply return
-         */
-        $hide_media = Rsfft::$merged_scode_atts[ 'hide_media' ];
         
-        if ( $hide_media == TRUE ) {
-            return FALSE;
-        }
+        // check whether user has opted to hide media or not, if TRUE, then simply return
+        if ( Rsfft::$merged_scode_atts[ 'hide_media' ] ) { return FALSE; }
+
+        $has_media = isset( $tweet->extended_entities ) ? true : false;    //$tweet->extended_entities object is set only when you have media
+        $tweet_id = strip_tags( $tweet->id_str );                          //Tweet id. Will be used as the id of the div
+        $tweetMedia = $has_media ? $tweet->extended_entities->media : '';  //Shortcut for Media object on set only when it exists.
         
-        //set $image_status = false initially
-        $image_status = false;
+        $media_count = '';                                                  //Keeps a track of the number of actual images generated for each tweet.
+        $html = '';                                                         //$html to hold the media html
         
-        /* define $html variable to hold the output tweet */
-        $html = '';
-        $html .= "<div class='tweet-media'>";       //opening div for media
-        
-        /* Get the string id of the tweet. Will be used as the id of the div */
-        $tweet_id = strip_tags( $tweet->id_str );
-        
-        /* 
-         * Check if the Tweet has an uploaded photo or video 
-         * by checking if "extended_entities" object in the tweet has been set.
-         * images & videos exist in the extended_entities object.
-         */
-        if ( isset( $tweet->extended_entities->media[0] ) ) {
+        //run this block only if tweet has images/videos attached.
+        if ( !empty( $tweetMedia ) ) {
             
-            $extended_entities = $tweet->{ 'extended_entities' };
-            $first_media = $extended_entities->media[0];
+            //loop through the $tweetsMedia object to fetch multiple images where applicable
+            foreach ( $tweetMedia as $i => $media ) {
+                
+                //if media is a video.
+                if ( $media->type == 'video' ) {
 
-            
+                    //$video_url = esc_url( $media->video_info->variants[0]->url );
+                    $video_url = Rsfft::rsfft_get_highest_bitrate_video( $media->video_info->variants );
+                    
+                    if ( $video_url ) {
+                        $html .= '<div class="link_details_wrap my-tweet-video-' . ($i +1) . '">';
+                            $html .= '<video id="' . esc_attr( $tweet_id ) . '" class="tweet-video" controls><source src="' . esc_attr( $video_url ) . '" type="video/mp4"></video>';
+                        $html .= '</div>';
+                        
+                        //increment the $media_count variable. It gets added to the '.tweet-media' class like '.tweet-media-2'.
+                        $media_count = '-' . ($i +1);  
+                    }
 
-            if ( $first_media ){
+                }//ends if
 
-                if ( $first_media->type == "video" ){
-                    //$html = "This is the URL of the video: " . $first_media->video_info->variants[0]->url;
-                    $video_url = esc_url( $first_media->video_info->variants[0]->url );
-                    $image_status = wp_http_validate_url( $video_url ) ? TRUE : FALSE;
-                    $html .= '<div class="link_details_wrap my-tweet_video">';
-                        $html .= '<video id="' . esc_attr( $tweet_id ) . '" class="tweet-video" controls><source src="' . esc_attr( $video_url ) . '" type="video/mp4"></video>';
-                    $html .= '</div>';
+                //if media has images.
+                if ( $media->type == 'photo' ){
+                    
+                    $image_url = esc_url( $media->media_url_https );
+                    if ( wp_http_validate_url( $image_url ) ) {
+                        $html .= '<div id="' . esc_attr( $tweet_id ) . '-' . ($i + 1) . '" class="link_details_wrap my-tweet-photo-' . ($i + 1) . '">';
+                            $html .= '<img alt="image" src="' . esc_attr( $image_url ) . '">';
+                        $html .='</div>';
+                        
+                        //increment the $media_count variable. It gets added to the '.tweet-media' class like '.tweet-media-2'
+                        $media_count = $media_count = '-' . ($i +1);;
+                    }
 
-                } else if ( $first_media->type == "photo" ){
-                    //$html = "This is the URL of the photo:  " . $first_media->media_url_https;
-                    $image_url = esc_url( $first_media->media_url_https );
-                    $image_status = wp_http_validate_url( $image_url ) ? TRUE : FALSE;
-                    $html .= '<div id="' . esc_attr( $tweet_id ) . '" class="link_details_wrap my-tweet_photo">';
-                    $html .= '<img alt="image" src="' . esc_attr( $image_url ) . '">';
-                    $html .='</div>';
-                }
+                } //ends if
 
-            }
-            
-        /* If native photos & videos don't exist. Check for external urls for title, desc, og:image or 'largest image' */
-        } else if ( !empty ( Rsfft::$external_url[0] ) ) {
+            }//ends foreach
+        
+        }//ends if
+        
+        //If native photos & videos don't exist. Check for external urls for title, desc, og:image or 'largest image'
+        if ( !$has_media && !empty ( Rsfft::$external_url[0] ) ) {
             
             $external_url_image_html = Rsfft::rsfft_fetch_external_url_details();
             
-            //if ( FALSE === $external_url_image_html ) {
-                //return FALSE;
-            //}
-            $image_status = ( FALSE === $external_url_image_html ) ? FALSE : TRUE;
+            if ( !empty( $external_url_image_html ) ) {
+                $html .= $external_url_image_html;
+            }
             
-            $html .= $external_url_image_html;
         } //end if
         
         
-        $html .= '</div>';          //closing div for media
         
-        if ( $image_status  ) {
-            return $html;
-        } else {
-            return FALSE;
+        if ( !empty( $html )  ) {
+            $returnHtml = "<div class='tweet-media tweet-media" . $media_count . "'>";     //opening outer div for media
+                $returnHtml .= $html;                                           //html returned for the media.
+            $returnHtml .= '</div>';                                            //closing outer div for media
+            
+            return $returnHtml;
         }
+        
+        return false;
         
         
     }//ends rsfft_get_media_display_html
     
     
     
-    /*
-     * Tweets that do not have an external URL.
-     * Tweets that contains Photo or Video as part of the tweet 
-     * also contains a Twitter URL as part of the Tweet text
+    
+    
+    /**
+     * Fetches the highest rate video from the video variants in a tweet
      * 
-     * It is of the format: https://t.co/D4GwXqZTMF
-     * It is not needed. So this function removed this URL from the text
-     * and returns the tweet.
-     * 
-     * @since 1.0
+     * @since 1.2.4
      * @access public
+     * 
+     * @param obj $videoVariants Contains an array of videos with varying bitrate
+     * @return string URL of the highest bitrate video
+     */
+    public static function rsfft_get_highest_bitrate_video( $videoVariants ) {
+
+        $hightest_bitrate = 0;
+        $highest_bitrate_video_url = '';
+        
+        foreach ( $videoVariants as $i => $video ) {
+            
+            if ( isset( $video->bitrate ) && $video->bitrate > $hightest_bitrate  ) {
+                
+                $hightest_bitrate = $video->{ 'bitrate' };
+                $highest_bitrate_video_url = $video->{ 'url' };
+                
+            }//ends if
+            
+        }//ends foreach
+        
+        //returns either URL or FALSE on failure
+        $video_url = wp_http_validate_url( $highest_bitrate_video_url );
+        
+        return $video_url;
+        
+    }//ends rsfft_get_highest_bitrate_video
+
+
+
+
+    /**
+     * Tweets often contain URLs that are not menant to be displayed, but are 
+     * sent as part of the tweet. Here we are matching the URLs contained in the body 
+     * of the tweet with the URLs present in "$tweet->entities->urls" object.
+     * 
+     * If a particular URL is not present in the "$tweet->entities->urls" object, we 
+     * remove it from the tweet text. And return the text.
+     * 
+     * 
+     * @since 1.0       Delete all URLs in the Tweet text
+     * @since 1.2.4     Delete only URLs that don't exist in "$tweet->entities->urls" object
+     * @access public
+     * @param   obj     $tweet          An individual tweet object
+     * @param   string  $text_with_url  Tweet text with unwanted URLs
      * @return string
      */
-    public static function rsfft_remove_url_in_tweet_sent_as_text( $text_with_url ){
+    public static function rsfft_remove_url_in_tweet_sent_as_text( $tweet, $text_with_url ){
         
-        /* 
-        * Filter out URL like (https://t.co/D4GwXqZTMF) in Tweet text 
-        * I am matching 'http or https', followed by '://' and then 't.co/' 
-        * and then any characters and numbers including '-' and '.'
-        */
-        $regex_url ='/(http|https):\/\/t\.co\/[a-zA-Z0-9\-\.]+/';
-        $text = preg_replace( $regex_url, '', $text_with_url );
+        //$regex_url ='/(http|https):\/\/t\.co\/[a-zA-Z0-9\-\.]+/';
+        //$text = preg_replace( $regex_url, '', $text_with_url );
+        
+        $text = $text_with_url;
+        $regex_url = '#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#';
+        $urlsInText = array();
+        $urlsInEntities = array();
+        Rsfft::$external_url = array();         //Make sure the external links array is always empty when the loop starts for each tweet
+        
+        
+        if ( preg_match_all( $regex_url, $text, $urlsInText ) ) {
+            
+            /*
+             * Loop through all the URLs sent in the entities->urls object 
+             * and create an array of all URLs in "$tweet->entities->urls" object
+             */
+            foreach ( $tweet->entities->{ 'urls' } as $i => $urlDetails ) {
+                $urlsInEntities[] = $urlDetails->{ 'url' };
+                
+                /* Store the URLs in an array */
+                Rsfft::$external_url[] = $urlDetails->{ 'expanded_url' };
+                
+            }
+            
+            /**
+             * $urlsInText[0] has URLs in the following format: 
+             * {
+             *      0: "https://t.co/lunlz72TRp",
+             *      1: "https://t.co/STdzLjn5wO"
+             *  }
+             */
+            
+            //$urlsInText[0] contains all the URLs in this Tweet text
+            foreach ( $urlsInText[0] as $urlInText ) {
+                if ( !in_array( $urlInText, $urlsInEntities ) ) {
+                    $text = str_replace( $urlInText, '', $text );
+                }
+            }//ends foreach
+            
+            /**
+             * Now you have the same URLs in the "$tweet->entities->urls" object 
+             * and in the tweet text.
+             * 
+             * Now replace all URLs in Tweet text with the 'display_url'
+             */
+            foreach ( $tweet->entities->{ 'urls' } as $i => $urlDetails ) {
+                $text = str_replace( $urlDetails->{ 'url' }, $urlDetails->{ 'display_url' }, $text );
+            }
+            
+        }//ends if
         
         return $text;
         
-    }
+    }//ends rsfft_remove_url_in_tweet_sent_as_text
 
     
     
     
-    /* Function to fetch tweets either live from Twitter or from Transient
+    /* Function to fetch relevant information from given external URL 
+     * so as to create a preview of the URL page.
      * 
      * @since 1.0
      * @access public
@@ -379,8 +473,8 @@ class Rsfft {
 
             /* Retrieve the stored URL details from Transient */
             $websiteDetails = get_transient( $external_url );
-             
-        }
+            //echo 'fetched external image details from transient. External img url: ' . $external_url . '<br>';
+        }//ends if
 
         
         /* 
@@ -462,13 +556,32 @@ class Rsfft {
         /* $html variable to store header */
         $html = '';
         
+        /**
+         * This block handles the retweeted by section. This block only shows 
+         * when the tweet is a retweet.
+         */
+        if ( Rsfft::$tweet_details[ 'is_retweet' ] ) {
+            
+            //fetch the retweet user object.
+            $retweet_user = Rsfft::$tweet_details[ 'retweet_user' ];
+            $retweeter_name = sanitize_text_field( $retweet_user->{ 'name' } );
+            $retweeter_screen_name = sanitize_text_field( $retweet_user->{ 'screen_name' } );
+            
+            $html .= "<div class='rsfft-retweet-div'>";
+                $retweet_svg_img = '<svg viewBox="0 0 24 24" aria-hidden="true" class="rsftt-retweet-sign-top"><g><path d="M23.615 15.477c-.47-.47-1.23-.47-1.697 0l-1.326 1.326V7.4c0-2.178-1.772-3.95-3.95-3.95h-5.2c-.663 0-1.2.538-1.2 1.2s.537 1.2 1.2 1.2h5.2c.854 0 1.55.695 1.55 1.55v9.403l-1.326-1.326c-.47-.47-1.23-.47-1.697 0s-.47 1.23 0 1.697l3.374 3.375c.234.233.542.35.85.35s.613-.116.848-.35l3.375-3.376c.467-.47.467-1.23-.002-1.697zM12.562 18.5h-5.2c-.854 0-1.55-.695-1.55-1.55V7.547l1.326 1.326c.234.235.542.352.848.352s.614-.117.85-.352c.468-.47.468-1.23 0-1.697L5.46 3.8c-.47-.468-1.23-.468-1.697 0L.388 7.177c-.47.47-.47 1.23 0 1.697s1.23.47 1.697 0L3.41 7.547v9.403c0 2.178 1.773 3.95 3.95 3.95h5.2c.664 0 1.2-.538 1.2-1.2s-.535-1.2-1.198-1.2z"></path></g></svg>';
+                $html .= "<span>" . $retweet_svg_img . "</span>";
+                $html .= "<span class='rsfft-retweeter-screenname'><a href='https://twitter.com/" . esc_attr( strtolower( $retweeter_screen_name ) ) . "' target='_blank' rel='noopener'>" . esc_attr( $retweeter_name ) . " Retweeted</a></span>";
+            $html .= "</div>";
+        }
+        
+        
         /* 
          * this is the profile image only for List type display style
          * profile image for other type of $display_style would be included
          * inside the header div (twitter_header_meta)
          */
         if ( $display_profile_img_header && $display_style == 'display_list' ) {
-            $html .= "<img src='" . $user->{ 'profile_image_url_https' } . "' alt='" . $user->{ 'name' } . "' class='twitter_profile_img' />";
+            $html .= "<img src='" . esc_url( $user->{ 'profile_image_url_https' } ) . "' alt='" . esc_attr( $user->{ 'name' } ) . "' class='twitter_profile_img' />";
         }//ends if
         
         /* the remaining header starts here */
@@ -478,7 +591,7 @@ class Rsfft {
              * Profile image where display style is not "display_list"
              */
             if ( $display_profile_img_header && $display_style != 'display_list' ) {
-                $html .= "<img src='" . $user->{ 'profile_image_url_https' } . "' alt='" . $user->{ 'name' } . "' class='twitter_inner_profile_img' />";
+                $html .= "<img src='" . esc_url( $user->{ 'profile_image_url_https' } ) . "' alt='" . esc_attr( $user->{ 'name' } ) . "' class='twitter_inner_profile_img' />";
             }//ends if
         
         
@@ -995,6 +1108,12 @@ class Rsfft {
      * If the user chooses options in shortcode which are only for pro, this 
      * fucntion resets them.
      * 
+     * Following are the limits:
+     * Images are not available.
+     * Videos are not available.
+     * Tweets are limited to 10 only.
+     * 2 column slider, 'display_slider_2_col' is not available. As it needs images.
+     * 
      * 
      * @since 1.0
      * @access public
@@ -1004,41 +1123,31 @@ class Rsfft {
      */
     public static function rsfft_reset_settings_reserved_for_pro() {
         
-        //check if $display_style is 'display_masonry' or 'display_slider_2_col' reset it to 'display_list'
+        //check if $display_style is 'display_slider_2_col' reset it to 'display_list'
         $display_style = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'display_style' ] );
-        if ( $display_style == 'display_masonry' || $display_style == 'display_slider_2_col' ) {
+        if ( $display_style == 'display_slider_2_col' ) {
             Rsfft::$merged_scode_atts[ 'display_style' ] = 'display_list';
         }
         
-        //check if $feed_type is 'hashtags_timeline' or 'search_timeline' reset it to 'user_timeline'
-        $feed_type = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'feed_type' ] );
-        if ( $feed_type == 'hashtags_timeline' || $feed_type == 'search_timeline' ) {
-            Rsfft::$merged_scode_atts[ 'feed_type' ] = 'user_timeline';
-        }
         
-        //check if hide_media is set to false. If yes, set it back to true
+        //Check if hide_media is set to false. If yes, set it back to true
         $hide_media = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'hide_media' ] );
         if ( $hide_media == 0 ) {
             Rsfft::$merged_scode_atts[ 'hide_media' ] = 1;
         }
         
-        /**
-         * Handles the Links section
+        
+        /*
+         * Ensure number of tweets ('count') are not more than 10
+         * If less than 1, set it back to 5
          */
-        $remove_links_hashtags = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'remove_links_hashtags' ] );
-        if ( $remove_links_hashtags == 1 ) {
-            Rsfft::$merged_scode_atts[ 'remove_links_hashtags' ] = 0;
+        $count = sanitize_text_field( Rsfft::$merged_scode_atts[ 'count' ] );
+        if ( $count > 10 ) {
+            Rsfft::$merged_scode_atts[ 'count' ] = 10;
+        } else if ( $count < 1 ) {
+            Rsfft::$merged_scode_atts[ 'count' ] = 5;
         }
         
-        $remove_links_mentions = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'remove_links_mentions' ] );
-        if ( $remove_links_mentions == 1 ) {
-            Rsfft::$merged_scode_atts[ 'remove_links_mentions' ] = 0;
-        }
-        
-        $remove_ext_links = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'remove_ext_links' ] );
-        if ( $remove_ext_links == 1 ) {
-            Rsfft::$merged_scode_atts[ 'remove_ext_links' ] = 0;
-        }
         
     }//ends rsfft_reset_settings_reserved_for_pro
 
@@ -1120,7 +1229,7 @@ class Rsfft {
         
         $display_style = sanitize_text_field( $disp_style ); 
         $number_of_tweets_in_row = intval( Rsfft::$merged_scode_atts[ 'number_of_tweets_in_row' ] );     
-        $id = sanitize_text_field( Rsfft::$scode_atts[ 'id' ] );
+        $id = sanitize_text_field( Rsfft::$merged_scode_atts[ 'id' ] );
         
         $slider_div_id = '';
         $slider_div_id_class = '';
@@ -1335,9 +1444,44 @@ class Rsfft {
         wp_localize_script( 'rsfft_scripts', 'rsfft_total_owl_sliders', $total_sliders_args );  
         
     }//ends rsfft_slides_localize_script
+    
+    
+    /**
+     * Check if the tweet is a retweet. If yes, then save is_retweet, and retweet_user 
+     * details in the global array Rsfft::$tweet_details.
+     * 
+     * @since 1.2.4
+     * @param obj $tweet The tweet object.
+     * @return NULL Returns nothing.
+     */
+    public static function rsfft_check_if_retweet( $tweet ) {
+        
+        //check if retweeted_status for the tweet is set. If yes, then it is a retweet.
+        if ( !isset( $tweet->retweeted_status ) ) {
+            
+            Rsfft::$tweet_details[ 'is_retweet' ] = false;
+            Rsfft::$tweet_details[ 'retweet_user' ] = '';
+            Rsfft::$tweet_details[ 'tweet' ] = $tweet;
+            
+        } else {
+            
+            Rsfft::$tweet_details[ 'is_retweet' ] = true;
+            Rsfft::$tweet_details[ 'retweet_user' ] = $tweet->user;             //holds the complete user obj of the retwitter user
+            
+            /**
+             * now set the tweet to $tweet->retweeted_status object. 
+             * So that every tweet element is fetched from the retweet object.
+             */
+            Rsfft::$tweet_details[ 'tweet' ] = $tweet->retweeted_status;
+            
+        }//end if
+        
+        return;
+        
+    }//rsfft_check_if_retweet
 
-    
-    
+
+
     /*
      * Get displayable Tweet text from a single tweet
      * It also removes unnecessary links
@@ -1351,23 +1495,15 @@ class Rsfft {
      */
     public static function rsfft_get_displayable_tweet( $tweet ) {
         
-        //this will later be changed with option that the user can choose
-        $full_text = true;
+        //declare variable to hold the tweet text
+        $text_with_urls = $tweet->{ 'full_text' };
         
-        /* Get the Tweet text from the Tweet Object */
-        if ( $full_text ) {
-            $text_with_url = $tweet->{ 'full_text' };
-        } else {
-            $text_with_url = $tweet->{ 'text' };
-        }
+        /* Sometimes, Tweets include extra links in the text part of the tweet object. Remove those URLs */
+        $text_without_url = Rsfft::rsfft_remove_url_in_tweet_sent_as_text( $tweet, $text_with_urls );
         
-
-        /* Sometimes, Tweets include links in the text part of the tweet object itself. Remove those URLs */
-        $text_without_url = Rsfft::rsfft_remove_url_in_tweet_sent_as_text( $text_with_url );
-
         /* Tweets are received without any links. This functions relinks them */
         $text = Rsfft::rsfft_add_links_to_tweet_entities( $tweet, $text_without_url );
-
+        
         return $text;
         
     }//ends rsfft_get_displayable_tweet
@@ -1423,6 +1559,105 @@ class Rsfft {
         
         
     }//ends rsfft_store_slider_n_carousel_settings_in_array
+    
+    
+    /**
+     * Function to sanitize and validate attributes passed by users.
+     * 
+     * @param   array     $atts     String of Hashtags enter by user separated by space
+     * @return  array               Sanitizes & validated hashtags
+     * 
+     * @since 1.2.4
+     */
+    public static function rsfft_sanitize_atts( $atts ) {
+        
+        //ensure $atts array is empty
+        if ( empty( $atts ) ) {
+            return '';
+        }
+        
+        //create an empty array.
+        $valid = array();
+        
+        //Loop through each of the incoming options
+        foreach ( $atts as $key => $value ) {
+            
+            //Check to see if the input option has a value. If so, process it.
+            if ( isset( $atts[ $key ] ) ) {
+                $valid[ $key ] = trim( strip_tags( stripslashes( $atts[ $key ] ) ) );
+            }// end if
+
+        }// ends foreach
+        
+        //if user has set hashtags attribute, sanitize and validate them
+        if ( isset( $valid[ 'hashtags' ] ) ) {
+            $valid[ 'hashtags' ] = preg_replace( '/[^a-zA-Z0-9\s]/', '', $valid[ 'hashtags' ] );
+        }
+        
+        //if search_string attribute is set, additional sanitizatio for it.
+        if ( isset( $valid[ 'search_string' ] ) ) {
+            $valid[ 'search_string' ] = preg_replace( '/[^a-zA-Z0-9\s]/', '', $valid[ 'search_string' ] );
+        }
+        
+        //validate Twitter screen_name if set
+        if ( isset( $valid[ 'screen_name' ] ) ) {
+            $valid[ 'screen_name' ] = preg_replace( '/[^a-zA-Z0-9_]/', '', $valid[ 'screen_name' ]);
+        }
+        
+        
+        //if "count" is set, ensure "count" value is numeric, otherwise set it to 10
+        if ( isset( $valid[ 'count' ] ) && !is_numeric( $valid[ 'count' ] ) ) {
+            $valid[ 'count' ] = '10';
+        }
+        
+        //if "number_of_tweets_in_row" is set, ensure it a number
+        if ( isset( $valid[ 'number_of_tweets_in_row' ] ) && !is_numeric( $valid[ 'number_of_tweets_in_row' ] ) ) {
+            $valid[ 'number_of_tweets_in_row' ] = '3';
+        }
+        
+        //if "transition_interval" is set, ensure it a number. Otherwise set it back to the default value '7'
+        if ( isset( $valid[ 'transition_interval' ] ) && !is_numeric( $valid[ 'transition_interval' ] ) ) {
+            $valid[ 'transition_interval' ] = '7';
+        }
+        
+        //if "transition_speed" is set, ensure "transition_speed" value is numeric, otherwise set it to 3
+        if ( isset( $valid[ 'transition_speed' ] ) && !is_numeric( $valid[ 'transition_speed' ] ) ) {
+            $valid[ 'transition_speed' ] = '3';
+        }
+        
+        /**
+         * Processing array of attributes that either needs to be '1' or '0;
+         * If they have any value other than '0' or '1', change it back to their default.
+         */
+        
+        //creating an array of attributes whose default value is '0'
+        $default_zero_attrs = [ 'hide_media', 'include_rts', 'remove_links_mentions', 'remove_ext_links', 'display_screen_name_footer', 
+            'display_date_footer', 'nav_arrows', 'auto_height' ];
+        
+        //loop through each to ensure they have a numeric value set
+        foreach ( $default_zero_attrs as $default_zero_attr ) {
+            if ( isset( $valid[ $default_zero_attr ] ) && !is_numeric( $valid[ $default_zero_attr ] ) ) {
+                $valid[ $default_zero_attr ] = '0';
+            }
+        }
+        
+        //now creating an array of attributes whose default value is '1'
+        $default_one_attrs = [ 'exclude_replies', 'include_photos', 'include_videos', 'remove_links_hashtags', 'nofollow_ext_links', 
+            'display_tweet_border', 'display_header', 'display_profile_img_header', 
+            'display_name_header', 'display_screen_name_header', 'display_date_header', 'display_footer', 
+            'display_likes_footer', 'display_retweets_footer', 'nav_dots', 'autoplay', 'pause_on_hover', 'loop',  ];
+        
+        //loop through each to ensure that a numeric value is set.
+        foreach ( $default_one_attrs as $default_one_attr ) {
+            if ( isset( $valid[ $default_one_attr ] ) && !is_numeric( $valid[ $default_one_attr ] ) ) {
+                $valid[ $default_one_attr ] = '1';
+            }
+        }
+        
+        return $valid;
+        
+        
+    }//ends rsfft_process_htags_sstrings
     
     
 }//ends class

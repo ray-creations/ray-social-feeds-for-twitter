@@ -496,7 +496,7 @@ class Rsfft_Admin {
                 ), 
                 'rsfft_feed_settings_page',           // Matches the section name
                 'rsfft_feed_settings_section',           // Matches the section name
-                array('Type of feed you wish to display.')   // Argument passed to the callback function
+                array('Choose the default feed type for shortcodes.')   // Argument passed to the callback function
                 );
         
         /** Adding the field for Screen Name  */
@@ -509,7 +509,7 @@ class Rsfft_Admin {
                 ), 
                 'rsfft_feed_settings_page', 
                 'rsfft_feed_settings_section',
-                array('Twitter screen name for user timeline')   
+                array('Set a default Twitter screen name for your user timelines.')   
                 );
         
         /* Adding the field for Hashtags  */
@@ -522,7 +522,7 @@ class Rsfft_Admin {
                 ), 
                 'rsfft_feed_settings_page', 
                 'rsfft_feed_settings_section',
-                array('Tweets based on Hashtags')   
+                array('Set default hashtags.')   
                 );
         
         /** Adding the field for Search String  */
@@ -535,7 +535,7 @@ class Rsfft_Admin {
                 ), 
                 'rsfft_feed_settings_page', 
                 'rsfft_feed_settings_section',
-                array('Search Tweets using keywords. <span class="rsfft_tip">(Available in Pro)</span>')   
+                array('Set default search terms for your Twitter search_timeline.')   
                 );
         
         /* Adding "include_media_type" in search */
