@@ -185,7 +185,6 @@ class Rc_Myctf_Cache {
     }//ends rc_myctf_delete_tweets_transient
     
     
-    
     /*
      * This function adds the '$shortcode_id' as the key
      * And '$transient_name' as its value.

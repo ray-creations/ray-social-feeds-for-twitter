@@ -4,7 +4,7 @@
  * Plugin Name: Ray Social Feeds For Twitter
  * Plugin URI: https://www.raycreations.net/my-custom-twitter-feed/
  * Description: Display beautiful twitter feeds on your website.
- * Version: 1.1.2
+ * Version: 1.2
  * Author: Ray Creations
  * Author URI: https://www.raycreations.net
  * License: GPLv2 or later
@@ -46,6 +46,8 @@ if ( !defined( 'ABSPATH' ) ){
 define( 'RC_MYCTF_VERSION', '1.0' );
 define( 'RC_MYCTF_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RC_MYCTF_URI', plugin_dir_url( __FILE__ ) );
+define( 'RC_MYCTF_OAUTH_URL', 'https://api.raycreations.net/wp-json/ray-api/v1/twitter-oauth' );
+define( 'RC_MYCTF_ADMIN_URL', admin_url( 'options-general.php?page=myctf-page' ) );
 
 
 /**
@@ -59,8 +61,8 @@ add_action( 'admin_enqueue_scripts', 'rc_myctf_enqueue_admin_scripts' );
 add_action( 'init', 'rc_myctf_load_textdomain' );
 
 /* Function to store plugin data in transient */
-add_action( 'admin_init', 'rc_myctf_store_plugin_data_in_transient' );
-add_action( 'admin_enqueue_scripts', 'rc_myctf_store_plugin_base_in_plugin_data_array' );
+//add_action( 'admin_init', 'rc_myctf_store_plugin_data_in_transient' );
+//add_action( 'admin_enqueue_scripts', 'rc_myctf_store_plugin_base_in_plugin_data_array' );
 
 /**
  * Include classes required by this plugin
@@ -142,10 +144,12 @@ function rc_myctf_plugin_activation(){
   
     // create the "rc_myctf_api_options" option
     $api_settings_args = array(
+        'app_consumer_key' => '',
+        'app_consumer_secret' => '',
         'consumer_key' => '',
         'consumer_secret' => '',
-        'bearer_token' =>'',
-        'token_last_invalidated' => time(),         //Stores the current Unix timestap 
+        'access_token' => '',
+        'access_token_secret' => '',
         'preserve_settings' => false                //Whether to preserve settings when plugin removed. [default: false]
     );
 

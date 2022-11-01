@@ -47,6 +47,28 @@ class Rc_Myctf {
     public static $scodes_slides = array();
 
     
+    
+    /**
+     * Holds the particular shortcode attributes
+     * So that it can be accessed across the plugin functions
+     * 
+     * since 1.2
+     * @access public
+     * @var array
+     */
+    public static $scode_atts = array();
+    
+    /**
+     * Merged shortcode attributes. 
+     * When attributes are mentioned in the shortcode $atts value, they take precedence.
+     * Otherwise, defaults are taken from the options settings table
+     * 
+     * since 1.2
+     * @access public
+     * @var array
+     */
+    public static $merged_scode_atts = array();
+    
 
     /**
      * Check whether the Class has been initialized
@@ -73,9 +95,6 @@ class Rc_Myctf {
         add_shortcode( 'my_custom_tweets', array( 'Rc_Myctf', 'rc_myctf_render_shortcode' ) );
         
         /* Check to see if shortcode exists for this page or post */
-        //add_action( 'wp', array( 'Rc_Myctf', 'rc_myctf_check_if_shortcode_exists' ) );
-        
-        /* Check to see if shortcode exists for this page or post */
         add_filter( 'the_content', array( 'Rc_Myctf', 'rc_myctf_add_unique_ids_to_shortcodes' ) );
         
         /* Needed a hook that executes after shortcodes are processed so we can get parent ids of the divs to localize */
@@ -97,8 +116,7 @@ class Rc_Myctf {
     public static function rc_myctf_render_shortcode( $atts ){
         
         /* Before any action takes place we need to check if  */
-        //$key_status = Rc_Myctf::rc_myctf_check_api_keys();
-        $key_status = TRUE;
+        $key_status = Rc_Myctf::rc_myctf_check_api_keys();
         
         if ( $key_status === FALSE ) {
             
@@ -108,6 +126,8 @@ class Rc_Myctf {
             
         }
         
+        /* save $atts to the class property $atts */
+        Rc_Myctf::$scode_atts = $atts;
         
         /* 
          * Unique id being automatically generated and added to $atts 
@@ -115,8 +135,13 @@ class Rc_Myctf {
          */
         $id = (isset( $atts['id'] )) ? strip_tags( $atts['id'] ) : '';
         
+        /**
+         * Save the merged options to class property $merged_scode_atts
+         */
+        Rc_Myctf::$merged_scode_atts = Rc_Myctf::rc_myctf_fetch_merged_atts_options( $atts );
+        
         /* get the display options: either default or the one set by the user */
-        $merged_atts_options = Rc_Myctf::rc_myctf_fetch_merged_atts_options( $atts );
+        $merged_atts_options = Rc_Myctf::$merged_scode_atts;
         //$display_style = $merged_atts_options[ 'display_style' ];
         $display_style = 'display_list';
         $number_of_tweets_in_row = $merged_atts_options[ 'number_of_tweets_in_row' ];
@@ -774,61 +799,6 @@ class Rc_Myctf {
     
     
     /* 
-     * Checks if shortcode exists for a page
-     * It only checks the page content
-     * 
-     * 
-     * @since 1.0
-     * @access public
-     * 
-     * @param   null
-     * @return  bool
-     */
-    public static function rc_myctf_check_if_shortcode_exists( $content ) {
-        
-      
-        $tag = 'my_custom_tweets';
-        
-        if ( false === strpos( $content, '[' ) ) {
-            return FALSE;
-        }
-        
-        if (shortcode_exists( $tag ) ) {
-            
-            preg_match_all( '/' . get_shortcode_regex() . '/', $content, $matches, PREG_SET_ORDER );
-            
-            if ( empty( $matches ) ) {
-                return FALSE;
-            }
-            
-            /* this will hold the instances of our shortcode */
-            $my_shortcodes = array();
-            
-            foreach ( $matches as $shortcode ) {
-                if ( $tag === $shortcode[2] ) {
-                    $my_shortcodes[] = $shortcode;
-                } 
-            } 
-            
-            $i = 1;
-            foreach ( $my_shortcodes as $my_shortcode ) {
-                
-                $string = explode( ']', $my_shortcode[0] );
-                echo 'Value of exploded string: ' . $string[0] . '<br><br>';
-                $my_shortcode[0] = $string[0] . ' id="' . $i . '"]';
-                
-                $i++;
-            }
-        }
-        
-        return FALSE;
-        
-    } //ends function 
-    //
-    
-    
-    
-    /* 
      * Add unique ids to shortcodes on each page
      * Searches automatically for our shortcode in page & post content
      * Add an unique id to all our shortcodes.
@@ -991,8 +961,8 @@ class Rc_Myctf {
             
             /* HTML to show instead of the tweets */
             $html .= '<div class="rc_myctf_tweets_wrap_error">';
-            $html .= '<p>You need to add your Consumer Key & Consumer Secret in the <a href="' . site_url() . '/wp-admin/options-general.php?page=myctf-page&tab=settings"> API Settings page</a> '
-                    . 'to start displaying tweets on your website.</p>';
+            $html .= '<p>Generate your access key & secret in the plugin <a href="' . RC_MYCTF_ADMIN_URL . '&tab=settings"> API Settings page</a> '
+                    . 'to display tweets.</p>';
             $html .= "</div>";
             
         }
@@ -1002,31 +972,41 @@ class Rc_Myctf {
     
     
     /* 
-     * Checks whether API keys have been added to the plugin or not 
+     * Checks whether necessary API keys have been added to the plugin or not 
      * 
      * @since 1.0
      * @access public
      * 
-     * @param   string  $error_type Indicates the type of error and the corresponding HTML to return
-     * 
-     * @return  string  $html       Error message html
+     * @return  Boolen  TRUE | False
      */
     public static function rc_myctf_check_api_keys() {
         
         $options_settings = get_option( 'rc_myctf_settings_options' );
+        $app_consumer_key = isset( $options_settings[ 'app_consumer_key' ] ) ? wp_strip_all_tags( $options_settings[ 'app_consumer_key' ] ) : '';
+        $app_consumer_secret = isset( $options_settings[ 'app_consumer_secret' ] ) ? wp_strip_all_tags( $options_settings[ 'app_consumer_secret' ] ) : '';
+        
         $consumer_key = isset( $options_settings[ 'consumer_key' ] ) ? wp_strip_all_tags( $options_settings[ 'consumer_key' ] ) : '';
         $consumer_secret = isset( $options_settings[ 'consumer_secret' ] ) ? wp_strip_all_tags( $options_settings[ 'consumer_secret' ] ) : '';
-        $bearer_token = isset( $options_settings[ 'bearer_token' ] ) ? sanitize_text_field( $options_settings[ 'bearer_token' ] ) : '';
         
-        /* If bearer token is already generated, return true */
-        if ( $bearer_token ) {
+        $access_token = isset( $options_settings[ 'access_token' ] ) ? wp_strip_all_tags( $options_settings[ 'access_token' ] ) : '';
+        $access_token_secret = isset( $options_settings[ 'access_token_secret' ] ) ? wp_strip_all_tags( $options_settings[ 'access_token_secret' ] ) : '';
+        
+        /* if access_token OR access_token_secret is not set return false */
+        if ( !$access_token || !$access_token_secret ) {
+            return FALSE;
+        }
+        
+        /* 
+         * either the app_consumer_key & app_consumer_secret 
+         * or consumer_key & consumer_secret should be present
+         * or both should be present
+         */
+        if ( ( $app_consumer_key && $app_consumer_secret ) || ( $consumer_key && $consumer_secret )  ) {
             return TRUE;
         }
         
-        /* if consumer key & consumer secret is not set return false */
-        if ( !$consumer_key || !$consumer_secret ) {
-            return FALSE;
-        }
+        /* since conditions are not met */
+        return FALSE;
         
     }//ends function rc_myctf_check_api_keys
     

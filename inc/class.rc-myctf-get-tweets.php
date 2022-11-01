@@ -52,8 +52,11 @@ class Rc_Myctf_Tweets {
         
         if ( false === ( $rc_myctf_cache->rc_myctf_get_cache( $id ) ) ) {
             
-            /* Fetch fresh Tweets as stored tweets have expired */
-            $raw_tweets = Rc_Myctf_Tweets::rc_myctf_fetch_live_tweets( $atts );
+            /* 
+             * Fetch fresh Tweets as stored tweets have expired 
+             */
+            
+            $raw_tweets = Rc_Myctf_Tweets::rc_myctf_fetch_live_tweets();
             
         } else {
             
@@ -61,8 +64,7 @@ class Rc_Myctf_Tweets {
             $raw_tweets = $rc_myctf_cache->rc_myctf_get_cache( $id );
 
         }
-        //print_r($raw_tweets);
-        //wp_die();
+
         /*
          * Check if $raw_tweets === false, then return false
          * Or check whether $raw_tweets is an object of WP Error class
@@ -78,7 +80,8 @@ class Rc_Myctf_Tweets {
          * object "statuses"
          */
         
-        $merged_atts_options = Rc_Myctf::rc_myctf_fetch_merged_atts_options( $atts );
+        //$merged_atts_options = Rc_Myctf::rc_myctf_fetch_merged_atts_options( $atts );
+        $merged_atts_options = Rc_Myctf::$merged_scode_atts;
         $feed_type = wp_strip_all_tags( $merged_atts_options[ 'feed_type' ] );
         
         if ( $feed_type == 'hashtags_timeline' || $feed_type == 'search_timeline' ) {
@@ -104,8 +107,9 @@ class Rc_Myctf_Tweets {
      * @param $atts array   Attributes as set in the shortcode by user
      * @return $tweets  object  List of tweets fetched from Twitter
      */
-    public static function rc_myctf_fetch_live_tweets( $atts ){
+    public static function rc_myctf_fetch_live_tweets() {
         
+        $atts = Rc_Myctf::$scode_atts;
         $id = !empty( $atts[ 'id' ] ) ? strip_tags( $atts[ 'id' ] ) : '';
         
         /* if there is no "id" associated with a shortcode, return "false" */
@@ -113,67 +117,90 @@ class Rc_Myctf_Tweets {
             return FALSE;
         }
         
-        /** get bearer token stored in options */
-        $options_api = get_option( 'rc_myctf_settings_options' );
-        $bearer_token = strip_tags( $options_api[ 'bearer_token' ] );
-                
-        $args = array(
-            'httpversion' => '1.1',
-            'blocking' => true,
-            'headers' => array(
-                'Authorization' => "Bearer $bearer_token"
-            )
+        $settings_option = get_option( 'rc_myctf_settings_options' );
+        $oauth_access_token = isset( $settings_option[ 'access_token' ] ) ? sanitize_text_field( $settings_option[ 'access_token' ] ) : '';
+        $oauth_access_token_secret = isset( $settings_option[ 'access_token_secret' ] ) ? sanitize_text_field( $settings_option[ 'access_token_secret' ] ) : '';
+        $consumer_key = isset( $settings_option[ 'app_consumer_key' ] ) ? sanitize_text_field( $settings_option[ 'app_consumer_key' ] ) : '';
+        $consumer_secret = isset( $settings_option[ 'app_consumer_secret' ] ) ? sanitize_text_field( $settings_option[ 'app_consumer_secret' ] ) : '';
+        
+        $settings = array(
+            'oauth_access_token' => $oauth_access_token,
+            'oauth_access_token_secret' => $oauth_access_token_secret,
+            'consumer_key' => $consumer_key,
+            'consumer_secret' => $consumer_secret
         );
         
-        //add_filter( 'https_ssl_verify', '__return_false' );
+        /* This function constructs and retuns the appropriate GET fields to query Twiiter */
+        $get_fields_string = strip_tags( Rc_Myctf_Tweets::rc_myctf_construct_get_fields_string() );
         
-        /* This function constructs and retuns the appropriate URL to query Twiiter */
-        $api_url = Rc_Myctf_Tweets::rc_myctf_construct_twitter_api_url( $atts );
+        //echo 'get_field_string value: ' . $get_fields_string . '<br>';
+        //wp_die();
         
-        $response = wp_remote_get( $api_url, $args );
-
-        //echo 'Fetched URL: ' . $api_url . '<br>';
+        $request_method = 'GET';
         
-        if ( is_wp_error($response) ){
-            //echo 'This is the error msg: ' . $response->get_error_message();
+        /* get feed_type */
+        $feed_type = strip_tags( Rc_Myctf::$merged_scode_atts[ 'feed_type' ] );
+        
+        
+        include_once( RC_MYCTF_DIR . 'inc/class.rc-myctf-twitter-connect.php' );
+        $twitter_instance = new Rc_Myctf_Twitter_Connect( $settings );
+        
+        $response = $twitter_instance
+                ->rc_myctf_set_get_field( $get_fields_string )
+                ->rc_myctf_build_oauth( $feed_type, $request_method )
+                ->rc_myctf_process_request();
+        
+        
+        if ( $response === FALSE ) {
             return FALSE;
         }
                 
         $tweets = json_decode( $response['body'] );
+        //print_r($tweets);
+        //wp_die();
+        
         
         /*
-         *  sets the transient and returns the status as either true or false 
-         * $status value can be used to 
+         * Check if $tweets === false Or if $raw_tweets is an object of WP Error class
+         * Also, check that $tweets itself does not contain error message from Twitter
+         * if not, then save it to transient (cache)
          */
-        $rc_myctf_cache = new Rc_Myctf_Cache();
-        $status = $rc_myctf_cache->rc_myctf_set_cache( $id, $tweets );
-        if ( $status == FALSE ) {
-            //echo 'The transient for shortcode_id . "' . $id . '" could not be set.';
-            //return FALSE;
-        }
+        if ( $tweets === FALSE || is_wp_error( $tweets ) || Rc_Myctf_Tweets::rc_myctf_tweets_contain_error_message( $tweets ) ) {
+            return FALSE;
+        } else {
+            
+            $rc_myctf_cache = new Rc_Myctf_Cache();
+            $status = $rc_myctf_cache->rc_myctf_set_cache( $id, $tweets );
+            
+            /* if $status is false, meaning cache could not be set. Send error.  */
+            if ( $status === FALSE ) {
+                return new WP_Error( 'cache_could_not_be_set', 'Could not store the fetched live tweets to cache...' );
+            }
+            
+        }//ends if
         
         return $tweets;
         
-    }//Ends function rc_myctf_fetch_live_tweets
-    
-    
-    
+        
+    }//ends rc_myctf_fetch_live_tweets_from_twitter
+
     
     
     
     /*
-     * Constructs the Twitter API Url according to settings by the user
-     * to fetch Tweets from Twitter
+     * Constructs a string of the GET fields that will be sent to the 
+     * class.rc-myctf-twitter-connect.php class.
      * 
-     * @since 1.0
+     * @since 1.2
      * @access public
      * 
-     * @return $api_url string  URL string
+     * @return string   A string of the GET fields
      */
-    public static function rc_myctf_construct_twitter_api_url( $atts ) {
+    public static function rc_myctf_construct_get_fields_string() {
         
         /* merged attributes and option values */
-        $merged_atts_options = Rc_Myctf::rc_myctf_fetch_merged_atts_options( $atts );
+        //$merged_atts_options = Rc_Myctf::rc_myctf_fetch_merged_atts_options( $atts );
+        $merged_atts_options = Rc_Myctf::$merged_scode_atts;
         
         /* If there was an error, return false */
         if ( $merged_atts_options == FALSE ) {
@@ -204,73 +231,71 @@ class Rc_Myctf_Tweets {
         /* if feed_type is 'user_timeline' */
         if ( $feed_type == 'user_timeline' ) {
             
-            $api_url = 'https://api.twitter.com/1.1/statuses/user_timeline.json?';
-            $api_url .= 'screen_name=' . urlencode( $screen_name );
-            $api_url .= '&count=' . $count;
-            $api_url .= '&exclude_replies=' . $exclude_replies;
-            $api_url .= '&include_rts=' . $include_rts;
-            $api_url .= '&tweet_mode=extended';
+            /* prefix a question mark (?) to the $get_fields string, as required by the Rc_Myctf_Twitter_Connect class  */
+            $get_fields = '?';
+            
+            $get_fields .= 'screen_name=' . rawurlencode( $screen_name );
+            $get_fields .= '&count=' . $count;
+            $get_fields .= '&exclude_replies=' . $exclude_replies;
+            $get_fields .= '&include_rts=' . $include_rts;
+            $get_fields .= '&tweet_mode=extended';
  
             
         } else if ( $feed_type == 'hashtags_timeline' || $feed_type == 'search_timeline' ) {
             
-            $api_url = 'https://api.twitter.com/1.1/search/tweets.json?';
+            /* prefix a question mark (?) to the $get_fields string, as required by the Rc_Myctf_Twitter_Connect class  */
+            $get_fields = '?';
             
             if ( $feed_type == 'hashtags_timeline' ) {
-                
-                /* get the hashtags from options as string */
-                //$hashtags_str = isset( $options_customize[ 'hashtags' ] ) ? $options_customize[ 'hashtags' ] : '';
                 
                 /* Function to return a formatted string of Hashtags to be used in Twitter URL */
                 $hashtags = Rc_Myctf_Tweets::rc_myctf_get_hashtags_formatted_for_twitter_url( $hashtags_str );
                 
-                $api_url .= 'q=' . urlencode( $hashtags );
-                
-                //echo 'Fetched Hashtags Tweets: ' . $hashtags . '<br><br>';
-                    
+                $get_fields .= 'q=' . rawurlencode( $hashtags );
+                   
             } else {
                 
-                $api_url .= 'q=' . urlencode( $search_string );
+                $get_fields .= 'q=' . rawurlencode( $search_string );
                 
                 //echo 'Fetched Search Tweets: ' . $search_string . '<br><br>';
                 
             }
             
             if ( $include_photos && !$include_videos ) {
-                $api_url .= urlencode( ' AND filter:images' );
+                $get_fields .= rawurlencode( ' AND filter:images' );
             }
             
             if ( $include_videos && !$include_photos ) {
-                $api_url .= urlencode( ' AND filter:native_video' );
+                $get_fields .= rawurlencode( ' AND filter:native_video' );
             }
             
             if ( $include_photos && $include_videos ) {
-                $api_url .= urlencode( ' AND filter:media' );
+                $get_fields .= rawurlencode( ' AND filter:media' );
             }
             
             if ( $exclude_replies == TRUE ) {
-                $api_url .= urlencode( ' AND -filter:replies' );
+                $get_fields .= rawurlencode( ' AND -filter:replies' );
             }
             
             if ( $include_rts == FALSE ) {
-                $api_url .= urlencode( ' AND -filter:retweets' );
+                $get_fields .= rawurlencode( ' AND -filter:retweets' );
             }
             
-            $api_url .= '&count=' . $count;
-            $api_url .= '&include_entities=true';
-            $api_url .= '&result_type=mix';
-            $api_url .= '&tweet_mode=extended';
+            $get_fields .= '&count=' . $count;
+            $get_fields .= '&include_entities=true';
+            $get_fields .= '&result_type=mix';
+            $get_fields .= '&tweet_mode=extended';
             
             
         }
 
-        return $api_url;
+        return $get_fields;
         
-    }//ends function rc_myctf_construct_twitter_api_url
-    
-    
-    
-    
+        
+    }//ends rc_myctf_construct_get_fields_string
+
+
+
     /*
      * Returns hashtags formatted for use in Twitter URL
      * 
@@ -328,5 +353,6 @@ class Rc_Myctf_Tweets {
             return FALSE;
         }
     }//ends rc_myctf_ensure_tweets_do_not_contain_error_message
+    
     
 }//ends class

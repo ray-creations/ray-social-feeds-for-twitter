@@ -26,41 +26,27 @@ class Rc_Myctf_Admin_Helper {
      */
     public static function rc_myctf_api_section_callback(){
         
-        /* Get options to check if bearer token exists */
-        //$settings_options = get_option( 'rc_myctf_settings_options' );
-        //$bearer_token = isset( $settings_options[ 'bearer_token' ] ) ? sanitize_text_field( $settings_options[ 'bearer_token' ] ) : '';
+        /* Button to fetch API keys */
+        $rc_myctf_action_token = 'fetch_access_token';
+        $rc_myctf_fetch_token_url = add_query_arg( array( 'rc_myctf_action_token' => $rc_myctf_action_token ), RC_MYCTF_ADMIN_URL );
+        $nonced_fetch_token_url = wp_nonce_url( $rc_myctf_fetch_token_url, 'rc_myctf-' . $rc_myctf_action_token . '_fetch-token' );
         
-        /* url of our plugin page */
-        $admin_url = admin_url( 'options-general.php?page=myctf-page' );
-        
-        $html = '';
-        
-        //if ( !empty( $bearer_token ) ) {
-            
-            /* Creating the button & link for bearer token deletion */
-            //$rc_myctf_action_bearer = 'delete_bearer_token';
-            
-            /* construct url with query strings */
-            //$delete_token_url = add_query_arg( array( 'rc_myctf_action_bearer' => $rc_myctf_action_bearer ), $admin_url );
-            //$nonced_delete_bearer_token_url = wp_nonce_url( $delete_token_url, 'rc_myctf-' . $rc_myctf_action_bearer . '_bearer-token');
-            
-            //$html .= '<div id="bearer-token-delete-div">';
-            //$html .= '<p><br><a href="' . $nonced_delete_bearer_token_url . '" id="rc_myctf_delete_token">Delete Current Bearer Token</a></p>';
-            //$html .= '</div>';
-        //}
+        $html = '<div id="fetch-access-token-div">';
+        $html .= '<p><br><a href="' . $nonced_fetch_token_url . '" id="rc_myctf_fetch_token">Generate Access Token &amp; Secret</a></p>';
+        $html .= '</div>';
         
         /* Creating the button & link for cached tweets deletion */
         $rc_myctf_action_cache = 'delete_cached_tweets';
-        $delete_cache_url = add_query_arg( array( 'rc_myctf_action_cache' => $rc_myctf_action_cache ), $admin_url );
+        $delete_cache_url = add_query_arg( array( 'rc_myctf_action_cache' => $rc_myctf_action_cache ), RC_MYCTF_ADMIN_URL );
         $nonced_delete_cache_url = wp_nonce_url( $delete_cache_url, 'rc_myctf-' . $rc_myctf_action_cache . '_cache' );
         
-        $html .= '<div id="bearer-token-delete-div">';
+        $html .= '<div id="delete_cached_tweets-div">';
         $html .= '<p><br><a href="' . $nonced_delete_cache_url . '" id="rc_myctf_delete_cache">Delete Cached Tweets</a></p>';
         $html .= '</div>';
         
         $html .= '<div id="consumer-key-info-div"><p><br><hr>';
-        $html .= '<strong>Note (optional)</strong>: You can <a href="https://www.raycreations.net/generating-twitter-api-keys/" title="create a Twitter app" target="_blank" rel="noopener">create your own Twitter app</a> to obtain your own API keys & secret needed for this plugin to fetch tweets &#128522;<br><br>';
-        $html .= 'Please enter your consumer key and consumer secret below:<br><br>';
+        $html .= '<strong>Note (optional)</strong>: Want to use your existing API Credentials? Feel free to enter them in the fields below. '
+                . 'See how to <a href="https://www.raycreations.net/generating-twitter-api-keys/" title="create a Twitter app" target="_blank" rel="noopener">create your own Twitter app</a><br><br>';
         $html .= '</p></div>';
         echo $html;
     }
@@ -75,9 +61,17 @@ class Rc_Myctf_Admin_Helper {
         
         $options = get_option( 'rc_myctf_settings_options' );
         $consumer_key = isset( $options[ 'consumer_key' ] ) ? sanitize_text_field( $options[ 'consumer_key' ] ) : '';
+        
+        /* hidden field value  */
+        $app_consumer_key = isset( $options[ 'app_consumer_key' ] ) ? sanitize_text_field( $options[ 'app_consumer_key' ] ) : '';
 
+        
         $html = "<input type='text' id='consumer_key' name='rc_myctf_settings_options[consumer_key]' value='$consumer_key' />";
         $html .= "<label for='consumer_key'> &nbsp;&nbsp;" . $args[0] . "</label>";
+        
+        /* hidden field ( don't want to create "add_settings_field" as it needs to stay hidden ) */
+        $html .= "<input type='hidden' id='app_consumer_key' name='rc_myctf_settings_options[app_consumer_key]' value='$app_consumer_key' />";
+        
         echo $html;
         
     }
@@ -92,10 +86,49 @@ class Rc_Myctf_Admin_Helper {
         
         $options = get_option( 'rc_myctf_settings_options' );
         $consumer_secret = isset( $options[ 'consumer_secret' ] ) ? sanitize_text_field( $options[ 'consumer_secret' ] ) : '';
+        /* hidden field value */
+        $app_consumer_secret = isset( $options[ 'app_consumer_key' ] ) ? sanitize_text_field( $options[ 'app_consumer_secret' ] ) : '';
 
         
         $html = "<input type='text' id='consumer_secret' name='rc_myctf_settings_options[consumer_secret]' value='$consumer_secret' />";
         $html .= "<label for='consumer_secret'> &nbsp;&nbsp;" . $args[0] . "</label>";
+        
+        /* hidden field ( don't want to create "add_settings_field" as it needs to stay hidden ) */
+        $html .= "<input type='hidden' id='app_consumer_secret' name='rc_myctf_settings_options[app_consumer_secret]' value='$app_consumer_secret' />";
+        
+        echo $html;
+    }
+    
+    
+    /** 
+     * Function to output Access Token content
+     * 
+     * @since 1.0
+     */
+    public static function rc_myctf_access_token_callback( $args ){
+        
+        $options = get_option( 'rc_myctf_settings_options' );
+        $access_token = isset( $options[ 'access_token' ] ) ? sanitize_text_field( $options[ 'access_token' ] ) : '';
+        
+        $html = "<input type='text' id='access_token' name='rc_myctf_settings_options[access_token]' value='$access_token' />";
+        $html .= "<label for='access_token'> &nbsp;&nbsp;" . $args[0] . "</label>";
+        
+        echo $html;
+    }
+    
+    
+    /** 
+     * Function to output Access Token Secret content
+     * 
+     * @since 1.0
+     */
+    public static function rc_myctf_access_token_secret_callback( $args ){
+        
+        $options = get_option( 'rc_myctf_settings_options' );
+        $access_token_secret = isset( $options[ 'access_token_secret' ] ) ? sanitize_text_field( $options[ 'access_token_secret' ] ) : '';
+        
+        $html = "<input type='text' id='access_token_secret' name='rc_myctf_settings_options[access_token_secret]' value='$access_token_secret' />";
+        $html .= "<label for='access_token_secret'> &nbsp;&nbsp;" . $args[0] . "</label>";
         
         echo $html;
     }

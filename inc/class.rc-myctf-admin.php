@@ -61,17 +61,14 @@ class Rc_Myctf_Admin {
         /* This function is to delete the Tweets saved in Transient when username in Customize tab settings is updated */
         add_action( 'update_option_rc_myctf_customize_options', array( 'Rc_Myctf_Admin', 'rc_myctf_delete_tweets_from_transient' ) );
         
-        /* Upon token invalidate request. This functions checks if it should be invalidated. And then calls appropriate function to invalidate it */
-        //add_action( 'admin_menu', array( 'Rc_Myctf_Admin', 'rc_myctf_check_if_token_should_be_invalidated' ) );
-        
         /* Function checks if Consumer key & secret are present. If not, displays an admin notice */
         //add_action( 'admin_head', array( 'Rc_Myctf_Admin', 'rc_myctf_show_admin_notice_for_no_keys' ) );
         
-        /* Deletes the current bearer token */
-        add_action( 'admin_menu', array( 'Rc_Myctf_Admin', 'rc_myctf_delete_bearer_token' ) );
-        
         /* Deletes the tweets stored in transient */
         add_action( 'admin_menu', array( 'Rc_Myctf_Admin', 'rc_myctf_delete_cached_tweets' ) );
+        
+        /* Fetches tokens from Twitter (Twitter OAuth) */
+        add_action( 'admin_menu', array( 'Rc_Myctf_Admin', 'rc_myctf_fetch_access_tokens_from_twitter' ) );
         
     }//ends init_hooks
     
@@ -243,6 +240,25 @@ class Rc_Myctf_Admin {
                 'rc_myctf_api_settings_page', 
                 'rc_myctf_api_settings_section', 
                 array( 'Your Twitter API Consumer Secret' )
+                );
+        
+        add_settings_field(
+                'rc_myctf_access_token', 
+                'Access Token', 
+                array( 'Rc_Myctf_Admin_Helper', 'rc_myctf_access_token_callback' ), 
+                'rc_myctf_api_settings_page', 
+                'rc_myctf_api_settings_section', 
+                array( 'Your Twitter API Access Token' )
+                );
+        
+        
+        add_settings_field(
+                'rc_myctf_access_token_secret', 
+                'Access Token Secret', 
+                array( 'Rc_Myctf_Admin_Helper', 'rc_myctf_access_token_secret_callback' ), 
+                'rc_myctf_api_settings_page', 
+                'rc_myctf_api_settings_section', 
+                array( 'Your Twitter API Access Token Secret' )
                 );
         
         
@@ -578,58 +594,6 @@ class Rc_Myctf_Admin {
     
     
     
-    /**
-     * Upon token invalidate request, this functions checks if it should be invalidated. 
-     * And then calls appropriate function to invalidate it.
-     * 
-     * @since 1.0
-     * @access public
-     */
-    public static function rc_myctf_check_if_token_should_be_invalidated() {
-        
-        if ( !isset( $_REQUEST[ 'rc_myctf_action' ] ) ){
-            return;
-        }
-        
-        if ( !current_user_can( 'manage_options' ) ) {
-            wp_die( 'Insufficient privileges' );
-        }
-        
-        $action = wp_strip_all_tags( $_REQUEST[ 'rc_myctf_action' ] );
-        
-        if ( $action == 'invalidated_token' ) {
-            add_action( 'admin_notices', array( 'Rc_Myctf_Notices', 'rc_myctf_admin_notice__success' ) );
-            return;
-        } else if ( $action == 'error' ) {
-            add_action( 'admin_notices', array( 'Rc_Myctf_Notices', 'rc_myctf_admin_notice__error' ) );
-            return;
-        }
-        
-        
-        check_admin_referer( 'rc_myctf-' . $action . '_bearer-token' );
-        
-        $result = FALSE;
-        /* check the $action parameter. And also check that at least 24 hours have elapsed since last token invalidation */
-        if ( $action == 'invalidate_token' && Rc_Myctf_Admin::rc_myctf_one_day_passed_since_last_invalidation() ) {
-            
-            if ( function_exists( Rc_Myctf_OAuth::rc_myctf_invalidate_bearer_token() ) ) {
-                $result = Rc_Myctf_OAuth::rc_myctf_invalidate_bearer_token();
-                
-            }
-            
-            
-            //If $result is TRUE
-            if ( $result ) {
-                //wp_redirect( add_query_arg( array( 'rc_myctf_action' => 'invalidated_token' ) ) );
-            } else {
-                //wp_redirect( add_query_arg( array( 'rc_myctf_action' => 'error' ) ) );
-            }//ends if
-            
-        }//ends if
-        
-    }
-    
-    
     
     /*
      * Determines whether 24 hours have passed since last invalidation
@@ -700,68 +664,6 @@ class Rc_Myctf_Admin {
     
     
     
-    /**
-     * Upon clicking the button to delete bearer token, it deletes the current
-     * bearer token.
-     * 
-     * @since 1.0
-     * @access public
-     */
-    public static function rc_myctf_delete_bearer_token() {
-        
-        if ( !isset( $_REQUEST[ 'rc_myctf_action_bearer' ] ) ){
-            return;
-        }
-        
-        if ( !current_user_can( 'manage_options' ) ) {
-            wp_die( 'Insufficient privileges' );
-        }
-        
-        $action = wp_strip_all_tags( $_REQUEST[ 'rc_myctf_action_bearer' ] );
-        
-        
-        if ( $action == 'deleted_bearer_token' ) {
-            add_action( 'admin_notices', array( 'Rc_Myctf_Notices', 'rc_myctf_admin_notice__success' ) );
-            return;
-        } else if ( $action == 'error' ) {
-            add_action( 'admin_notices', array( 'Rc_Myctf_Notices', 'rc_myctf_admin_notice__error' ) );
-            return;
-        }
-        
-        check_admin_referer( 'rc_myctf-' . $action . '_bearer-token' );
-        
-        //ensure bearer token is not empty
-        $options = get_option( 'rc_myctf_settings_options' );
-        $bearer_token = isset( $options[ 'bearer_token' ] ) ? sanitize_text_field( $options[ 'bearer_token' ] ) : '';
-        
-        if ( empty( $bearer_token ) ) {
-            return;
-        }
-        
-        /* initially set $result = false. If successfully deleted bearer token, then set it to $result = True */
-        $result = FALSE;
-            
-        /* check the $action parameter. And also check that at least 24 hours have elapsed since last token invalidation */
-
-            
-        //If $result is TRUE
-        if ( $action == 'delete_bearer_token' ) {
-
-        $options[ 'bearer_token' ] = '';
-        $result = update_option( 'rc_myctf_settings_options', $options );
-        $admin_url = admin_url( 'options-general.php?page=myctf-page' );
-        
-            //if $result is TRUE
-            if ( $result ) {
-                wp_redirect( add_query_arg( array( 'rc_myctf_action_bearer' => 'deleted_bearer_token' ), $admin_url ) );
-            } else {
-                wp_redirect( add_query_arg( array( 'rc_myctf_action_bearer' => 'error' ), $admin_url ) );
-            }
-        }//end if
-  
-    }//ends rc_myctf_delete_bearer_token
-    
-    
     
     /*
      * Deletes the cached Tweets when one clicks on the "Delete Cached Tweets" button
@@ -801,17 +703,89 @@ class Rc_Myctf_Admin {
         $result = Rc_Myctf_Admin::rc_myctf_delete_tweets_from_transient();
         
         /* url of our plugin page */
-        $admin_url = admin_url( 'options-general.php?page=myctf-page' );
+        //$admin_url = admin_url( 'options-general.php?page=myctf-page' );
         
             //if $result is TRUE
             if ( $result ) {
-                wp_redirect( add_query_arg( array( 'rc_myctf_action_cache' => 'deleted_cached_tweets' ), $admin_url ) );
+                wp_redirect( add_query_arg( array( 'rc_myctf_action_cache' => 'deleted_cached_tweets' ), RC_MYCTF_ADMIN_URL ) );
             } else {
-                wp_redirect( add_query_arg( array( 'rc_myctf_action_cache' => 'error' ), $admin_url ) );
+                wp_redirect( add_query_arg( array( 'rc_myctf_action_cache' => 'error' ), RC_MYCTF_ADMIN_URL ) );
             }
         }//end if
         
     }//ends rc_myctf_delete_cached_tweets
+    
+    
+    
+    /*
+     * Function to handle the fetching of Acces tokens, secret,
+     * consumer key, and consumer secret from Twitter API.
+     * 
+     * The request is sent to Ray Creations API, which in turn sends us back the 
+     * authorization url.
+     * 
+     * @since 1.1
+     * @access public
+     */
+    public static function rc_myctf_fetch_access_tokens_from_twitter() {
+        
+        /* check if 'rc_myctf_action_token' is set, if not return */
+        if ( !isset( $_REQUEST[ 'rc_myctf_action_token' ] ) ){ return; }
+        
+        /* check if current user has sufficient privileges, otherwise, tell WordPress to die */
+        if ( !current_user_can( 'manage_options' ) ) { wp_die( 'Insufficient privileges' ); }
+        
+        /* url of our plugin page */
+        //$admin_url = admin_url( 'options-general.php?page=myctf-page' );
+        
+        /* Extract the value of 'rc_myctf_action_token' */
+        $action = wp_strip_all_tags( $_REQUEST[ 'rc_myctf_action_token' ] );
+        
+        
+        if ( $action == 'fetched_access_token' ) {
+            add_action( 'admin_notices', array( 'Rc_Myctf_Notices', 'rc_myctf_admin_notice__success' ) );
+            return;
+        } else if ( $action == 'error' ) {
+            add_action( 'admin_notices', array( 'Rc_Myctf_Notices', 'rc_myctf_admin_notice__error' ) );
+            return;
+        } else if ( $action == 'saved_tokens' ) {
+            
+            /* the tokens are saved temporarily with Ray Creations, which needs to be fetched using API */
+            $fetch_status = Rc_Myctf_OAuth::rc_myctf_fetch_saved_tokens_from_ray_creations_api();
+            
+            if ( $fetch_status ) {
+                /* redirect so that the page can load again and show the stored keys in the admin */
+                wp_redirect( add_query_arg( array( 'rc_myctf_action_token' => 'fetched_access_token' ), RC_MYCTF_ADMIN_URL ) );
+                exit;
+            } else {
+                
+                add_action( 'admin_notices', array( 'Rc_Myctf_Notices', 'rc_myctf_admin_notice__error' ) );
+                return;
+            }//ends if
+            
+        }//ends if
+        
+        check_admin_referer( 'rc_myctf-' . $action . '_fetch-token' );
+        
+        $oauth_url = '';
+            
+        //check that action equals 'fetch_access_token'
+        if ( $action == 'fetch_access_token' ) {
+        
+            //delete cached tweets
+            $oauth_url = Rc_Myctf_OAuth::rc_myctf_fetch_3_legged_oauth_url_from_ray_creations_api();
+
+            //if $result is TRUE
+            if ( !empty( $oauth_url ) ) {
+                //wp_redirect( add_query_arg( array( 'rc_myctf_action_token' => 'fetched_access_token' ), RC_MYCTF_ADMIN_URL ) );
+                header('Location: ' . $oauth_url );
+            } else {
+                wp_redirect( add_query_arg( array( 'rc_myctf_action_token' => 'error' ), RC_MYCTF_ADMIN_URL ) );
+            }
+        }//end if
+        
+    }//ends rc_myctf_fetch_access_tokens_from_twitter
 
     
+
 }// ends class
