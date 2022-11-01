@@ -33,7 +33,7 @@ $html .= "<div class='tweet'>";
      */  
     if ( !empty( Rc_Myctf::$external_url[0] ) && !$remove_ext_links ) {
         
-        $html .= "<br><a href='" . esc_url( Rc_Myctf::$external_url[0] ) . "' target='_blank' rel='noopener" . $nofollow . "'>" . esc_url( $tweet->entities->urls[0]->display_url ) . "</a>";
+        $html .= "<br><a href='" . esc_url( Rc_Myctf::$external_url[0] ) . "' target='_blank' rel='noreferrer" . $nofollow . "'>" . esc_url( $tweet->entities->urls[0]->display_url ) . "</a>";
         
     } else if ( !empty( Rc_Myctf::$external_url[0] ) && $remove_ext_links ) {
         

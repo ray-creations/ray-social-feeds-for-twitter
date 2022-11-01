@@ -1,9 +1,9 @@
 === Ray Social Feeds For Twitter ===
 Contributors: raycreations, amritray, aparna19
-Tags: Twitter, Tweets, Twitter Feed, Twitter Widget, Twitter Gallery, Ray Social Feeds For Twitter
+Tags: Twitter Feeds, Twitter Feeds WordPress, Twitter Feed, Twitter Widget, Twitter Gallery, Ray Social Feeds For Twitter
 Requires at least: 3.2
-Tested up to: 5.3.2
-Stable tag: 1.2.1
+Tested up to: 5.4
+Stable tag: 1.2.2
 Requires PHP: 5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -169,22 +169,14 @@ We want to provide the best possible user experience for our plugin users. We wo
 
 == Upgrade Notice ==
 
-= 1.2.1 =
-* A major update that introduces many features.
-* Introduced Mentions timeline.
-* Now uses "Owl Carousel 2" for sliders.
-* "Slider 1 Column" feed format is now available along with the List format.
-* Option to "nofollow" external links.
-* Introduced Tweets (Show/Hide) settings page.
-* Introduced "Style" settings page.
-* Introduced Slider/Carousel settings page.
-* Added elaborate list of shortcodes you can use.
-* Slight design changes to the feed.
-* Choose the border type around tweets or hide it completely.
-* More structured code.
+= 1.2.2 =
+* Fixed minor issues with admin widget screen.
 
 
 == Changelog ==
+
+= 1.2.2 =
+* Fixed minor issues with admin widget screen.
 
 = 1.2.1 =
 * A major update that introduces many features.

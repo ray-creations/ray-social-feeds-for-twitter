@@ -4,7 +4,7 @@
  * Plugin Name: Ray Social Feeds For Twitter
  * Plugin URI: https://www.raycreations.net/my-custom-twitter-feed/
  * Description: Display beautiful twitter feeds on your website.
- * Version: 1.2.1
+ * Version: 1.2.2
  * Author: Ray Creations
  * Author URI: https://www.raycreations.net
  * License: GPLv2 or later

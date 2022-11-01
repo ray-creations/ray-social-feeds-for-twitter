@@ -100,7 +100,9 @@ class Rc_Myctf_Widget extends WP_Widget {
                 Feed Type:<br>
                 <input type="radio" name="<?php echo esc_attr( $this->get_field_name( 'feed_type' ) ); ?>" 
                        value="user_timeline" <?php checked( $feed_type, 'user_timeline' ); ?>> user_timeline </input><br>
-                <input type="radio" name="<?php echo esc_attr( $this->get_field_name( 'feed_type' ) ); ?>"
+                <input type="radio" name="<?php echo esc_attr( $this->get_field_name( 'feed_type' ) ); ?>" 
+                       value="mentions_timeline" <?php checked( $feed_type, 'mentions_timeline' ); ?>> mentions_timeline </input><br>
+                <input type="radio" disabled name="<?php echo esc_attr( $this->get_field_name( 'feed_type' ) ); ?>"
                        value="hashtags_timeline" <?php checked( $feed_type, 'hashtags_timeline' ); ?>> hashtags_timeline </input><br>
                 <input type="radio" disabled name="<?php echo esc_attr( $this->get_field_name( 'feed_type' ) ); ?>"
                        value="search_timeline" <?php checked( $feed_type, 'search_timeline'); ?>> search_timeline </input>
@@ -111,7 +113,7 @@ class Rc_Myctf_Widget extends WP_Widget {
                                     value="<?php echo esc_attr( $screen_name ); ?>" >
             </p>
             <p>
-                Hashtags: <input class="widefat" type="text" name="<?php echo esc_attr( $this->get_field_name( 'hashtags' ) ); ?>"
+                Hashtags: <input class="widefat" disabled type="text" name="<?php echo esc_attr( $this->get_field_name( 'hashtags' ) ); ?>"
                                  value="<?php echo esc_attr( $hashtags ); ?>" >
             </p>
             <p>
@@ -122,20 +124,18 @@ class Rc_Myctf_Widget extends WP_Widget {
                 Display Style:
                 <select class="widefat" name="<?php echo esc_attr( $this->get_field_name( 'display_style' ) ); ?>" >
                     <option value="display_list" <?php selected( $display_style, 'display_list' ); ?>><?php echo "List" ?></option>
-                    <option value="display_masonry" <?php selected( $display_style, 'display_masonry' ); ?>><?php echo "Masonry" ?></option>
                     <option value="display_slider_1_col" <?php selected( $display_style, 'display_slider_1_col' ); ?>><?php echo "Slider 1 Column" ?></option>
-                    <option value="display_slider_2_col" <?php selected( $display_style, 'display_slider_2_col' ); ?>><?php echo "Slider 2 Column" ?></option>
                 </select>
             </p>
             <p>
-                Hide Media: <input type="checkbox" name="<?php echo esc_attr( $this->get_field_name( 'hide_media' ) ); ?>"
+                Hide Media: <input type="checkbox" disabled name="<?php echo esc_attr( $this->get_field_name( 'hide_media' ) ); ?>"
                                         <?php checked( $hide_media, 'on' ); ?>>
             </p>
             <p>
                 Number of Tweets: 
                 <select class="widefat" name="<?php echo esc_attr( $this->get_field_name( 'count' ) ); ?>" >
                     <?php 
-                    for ( $i=1; $i <= 10; $i++ ) { 
+                    for ( $i=1; $i <= 20; $i++ ) { 
                     ?>
                         <option value="<?php echo $i ?>" <?php selected( $count, $i ); ?>><?php echo $i ?></option>
                         

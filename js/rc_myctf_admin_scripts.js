@@ -38,7 +38,7 @@ jQuery(document).ready(function($){
     //disable hide_media button
     $( '.hide_media_chk' ).prop( 'disabled', true );
     
-    //Handle Feed Type
+    //Handle Feed Type radio button options
     if ( $( '#hashtags_timeline' ).is( ':checked' ) || $( "#search_timeline" ).is( ':checked' ) ) {
         $( '#user_timeline' ).prop( 'checked', true );
     }
@@ -47,7 +47,7 @@ jQuery(document).ready(function($){
     $( '#search_timeline' ).prop( 'disabled', true );
     
     
-    //Handle Links Settings Section
+    //Handle Links Settings Section (check boxes)
     if ( $( '#remove_links_hashtags' ).is( ':checked' ) ) {
         $( '#remove_links_hashtags' ).prop( 'checked', false );
     }
@@ -65,5 +65,10 @@ jQuery(document).ready(function($){
     
     //disable Hashtags & Search String text field
     $( '.rc-myctf-pro-feature' ).attr( 'disabled', true );
+    
+    /**
+     * for the widget section
+     */
+    
     
 });//ends main function
