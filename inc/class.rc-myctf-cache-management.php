@@ -167,12 +167,12 @@ class Rc_Myctf_Cache {
         } else {
             
             /* delete all transients */
-            $rc_myctf_scodes_transients = get_option( 'rc_myctf_scodes_transients' );
+            $rc_myctf_scodes_trans = get_option( 'rc_myctf_scodes_trans' );
             
-            foreach ( $rc_myctf_scodes_transients as $shortcode_id => $transient_name ) {
+            foreach ( $rc_myctf_scodes_trans as $shortcode_id => $transient_name ) {
                 
                 /* Check to see that $shortcode_id has a value. If yes, delete it. */
-                if ( isset( $rc_myctf_scodes_transients[ $shortcode_id ] ) ) {
+                if ( isset( $rc_myctf_scodes_trans[ $shortcode_id ] ) ) {
                     delete_transient( $transient_name );
                 }
                 
@@ -206,9 +206,14 @@ class Rc_Myctf_Cache {
         
         $transient_name = 'rc_myctf_cached_tweets_' . $shortcode_id;
         
-        $options = get_option( 'rc_myctf_scodes_transients' );
+        $options = (array)get_option( 'rc_myctf_scodes_trans' );
+        
+        if ( $options == FALSE ) {
+            add_option( 'rc_myctf_scodes_trans' );
+        }
+        
         $options[ $shortcode_id ] = $transient_name;
-        update_option( 'rc_myctf_scodes_transients', $options );
+        update_option( 'rc_myctf_scodes_trans', $options );
         
         //print_r($options);
         

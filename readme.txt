@@ -3,7 +3,7 @@ Contributors: raycreations, amritray, aparna19
 Tags: Twitter, Tweets, Twitter Feed, Twitter Widget, Twitter Gallery, Ray Social Feeds For Twitter
 Requires at least: 3.2
 Tested up to: 5.3.2
-Stable tag: 1.1
+Stable tag: 1.1.2
 Requires PHP: 5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -123,13 +123,14 @@ We want to provide the best possible user experience for our plugin users. We wo
 
 
 == Upgrade Notice ==
-= 1.1 =
-* New: no longer necessary to create your own twitter developer account to obtain keys
-* New: added button to delete cached tweets
-* Fix: loading twitter profile image over https instead of http
+= 1.1.2 =
+* Fixed issue fetching token
 
 
 == Changelog ==
+
+= 1.1.2 =
+* Fix: issue with fetching token
 
 = 1.1 =
 * New: no longer necessary to create your own twitter developer account to obtain keys

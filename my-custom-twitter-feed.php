@@ -4,7 +4,7 @@
  * Plugin Name: Ray Social Feeds For Twitter
  * Plugin URI: https://www.raycreations.net/my-custom-twitter-feed/
  * Description: Display beautiful twitter feeds on your website.
- * Version: 1.1
+ * Version: 1.1.2
  * Author: Ray Creations
  * Author URI: https://www.raycreations.net
  * License: GPLv2 or later
@@ -173,7 +173,7 @@ function rc_myctf_plugin_activation(){
         add_option( 'rc_myctf_settings_options', $api_settings_args );
         add_option( 'rc_myctf_customize_options', $customize_args );
         add_option( 'rc_myctf_support_options' );
-        add_option( 'rc_myctf_scodes_transients' );
+        add_option( 'rc_myctf_scodes_trans' );
 
 } //ends plugin activation function
     
@@ -187,7 +187,7 @@ function rc_myctf_plugin_activation(){
 * @return void
 */
 function rc_myctf_plugin_deactivation(){
-    delete_option('rc_myctf_settings_options');
+ 
 }
 
 
@@ -209,7 +209,7 @@ function rc_myctf_plugin_uninstall(){
            delete_option( 'rc_myctf_settings_options' );
            delete_option( 'rc_myctf_customize_options' );
            delete_option( 'rc_myctf_support_options' );
-           delete_option( 'rc_myctf_scodes_transients' );
+           delete_option( 'rc_myctf_scodes_trans' );
 
    }
 }

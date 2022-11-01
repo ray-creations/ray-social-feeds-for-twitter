@@ -229,9 +229,13 @@ class Rc_Myctf_OAuth {
         
         /* prepare data to be sent along with the request */
         $token_type = 'api_keys';
-        $plugin_name = sanitize_text_field( $plugin_data['Name'] );
-        $plugin_text_domain = sanitize_text_field( $plugin_data['TextDomain'] );
-        $plugin_base = sanitize_text_field( $plugin_data[ 'plugin_base' ] );
+        //$plugin_name = sanitize_text_field( $plugin_data['Name'] );
+        //$plugin_text_domain = sanitize_text_field( $plugin_data['TextDomain'] );
+        //$plugin_base = sanitize_text_field( $plugin_data[ 'plugin_base' ] );
+        $plugin_name = 'ray social feeds for twitter';
+        $plugin_text_domain = 'my-custom-twitter-feed';
+        $plugin_base = 'myctf-page';
+        
         
         $parameters = array(
             'token_type' => $token_type,
