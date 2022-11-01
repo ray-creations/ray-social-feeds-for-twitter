@@ -8,8 +8,8 @@
 
 jQuery(document).ready(function($){
 
-    // Add Color Picker to all inputs that have 'rc-myctf-color-fields' class
-    $( '.rc-myctf-color-fields' ).wpColorPicker();
+    // Add Color Picker to all inputs that have 'rsfft-color-fields' class
+    $( '.rsfft-color-fields' ).wpColorPicker();
     
 });//ends main function
 
@@ -64,7 +64,7 @@ jQuery(document).ready(function($){
     
     
     //disable Hashtags & Search String text field
-    $( '.rc-myctf-pro-feature' ).attr( 'disabled', true );
+    $( '.rsfft-pro-feature' ).attr( 'disabled', true );
     
     /**
      * for the widget section

@@ -4,7 +4,7 @@
  * Plugin Name: Ray Social Feeds For Twitter
  * Plugin URI: https://www.raycreations.net/my-custom-twitter-feed/
  * Description: Display beautiful twitter feeds on your website.
- * Version: 1.2.2
+ * Version: 1.2.3
  * Author: Ray Creations
  * Author URI: https://www.raycreations.net
  * License: GPLv2 or later
@@ -43,66 +43,70 @@ if ( !defined( 'ABSPATH' ) ){
  * 
  * @since 1.0
  */
-define( 'RC_MYCTF_VERSION', '1.0' );
-define( 'RC_MYCTF_DIR', plugin_dir_path( __FILE__ ) );
-define( 'RC_MYCTF_URI', plugin_dir_url( __FILE__ ) );
-define( 'RC_MYCTF_OAUTH_URL', 'https://api.raycreations.net/wp-json/ray-api/v1/twitter-oauth' );
-define( 'RC_MYCTF_ADMIN_URL', admin_url( 'options-general.php?page=myctf-page' ) );
+define( 'RSFFT_VERSION', '1.2.3' );
+define( 'RSFFT_DIR', plugin_dir_path( __FILE__ ) );
+define( 'RSFFT_URI', plugin_dir_url( __FILE__ ) );
+define( 'RSFFT_OAUTH_URL', 'https://api.raycreations.net/wp-json/ray-api/v1/twitter-oauth' );
+define( 'RSFFT_ADMIN_URL', admin_url( 'options-general.php?page=myctf-page' ) );
+/*
+ * @since 1.2.3
+ */
+define( 'RSFFT_SCODE_STR', 'my_custom_tweets' );
 
 
 /**
  * Enqueue style sheet & scripts
  */
-add_action( 'wp_enqueue_scripts', 'rc_myctf_enqueue_styles', 50 );                                  //plugin front facing main stylesheet
-add_action( 'wp_enqueue_scripts', 'rc_myctf_enqueue_scripts' );
-add_action( 'admin_enqueue_scripts', 'rc_myctf_enqueue_admin_scripts' );
+add_action( 'wp_enqueue_scripts', 'rsfft_enqueue_styles', 50 );                                  //plugin front facing main stylesheet
+add_action( 'wp_enqueue_scripts', 'rsfft_enqueue_scripts' );
+add_action( 'admin_enqueue_scripts', 'rsfft_enqueue_admin_scripts' );
 
 /* Enqueue function to load plugin textdomain */
-add_action( 'init', 'rc_myctf_load_textdomain' );
+add_action( 'init', 'rsfft_load_textdomain' );
 
 /* Function to store plugin data in transient */
-//add_action( 'admin_init', 'rc_myctf_store_plugin_data_in_transient' );
-//add_action( 'admin_enqueue_scripts', 'rc_myctf_store_plugin_base_in_plugin_data_array' );
+//add_action( 'admin_init', 'rsfft_store_plugin_data_in_transient' );
+//add_action( 'admin_enqueue_scripts', 'rsfft_store_plugin_base_in_plugin_data_array' );
 
 /**
  * Include classes required by this plugin
  */
-require_once( RC_MYCTF_DIR . 'inc/class.rc-myctf-oauth.php' );
-require_once( RC_MYCTF_DIR . 'inc/class.rc-myctf-cache-management.php' );
-require_once( RC_MYCTF_DIR . 'inc/class.rc-myctf-widgets.php' );
+require_once( RSFFT_DIR . 'inc/class.rsfft-oauth.php' );
+require_once( RSFFT_DIR . 'inc/class.rsfft-cache-management.php' );
+require_once( RSFFT_DIR . 'inc/class.rsfft-widgets.php' );
 
 if ( !is_admin() ) {
-    require_once( RC_MYCTF_DIR . 'inc/class.my-custom-twitter-feed.php' );
-    require_once( RC_MYCTF_DIR . 'inc/class.rc-myctf-url-preview.php' );
-    require_once( RC_MYCTF_DIR . 'inc/class.rc-myctf-get-tweets.php' );
+    require_once( RSFFT_DIR . 'inc/class.my-custom-twitter-feed.php' );
+    require_once( RSFFT_DIR . 'inc/class.rsfft-url-preview.php' );
+    require_once( RSFFT_DIR . 'inc/class.rsfft-get-tweets.php' );
 }
 
 /**
  * Initialize the included pages wherever required
  */
 
-add_action( 'init', array( 'Rc_Myctf_OAuth', 'init' ) );
+add_action( 'init', array( 'Rsfft_OAuth', 'init' ) );
 
 if ( !is_admin() ) {
-    add_action( 'init', array( 'Rc_Myctf', 'init' ) );
+    add_action( 'init', array( 'Rsfft', 'init' ) );
 }
 
 
 
 /* When user is in the Admin Dashboard */
 if( is_admin() ){
-    require_once( RC_MYCTF_DIR . 'inc/class.rc-myctf-admin.php' );
-    add_action( 'init', array( 'Rc_Myctf_Admin', 'init' ) );
+    require_once( RSFFT_DIR . 'inc/class.rsfft-admin.php' );
+    add_action( 'init', array( 'Rsfft_Admin', 'init' ) );
     
     /*
      * Include the admin helper class that houses many of the 
      * functions from the admin page above  
      */
-    require_once( RC_MYCTF_DIR . 'inc/class.rc-myctf-admin-helper.php' );
+    require_once( RSFFT_DIR . 'inc/class.rsfft-admin-helper.php' );
     
     /* include the class for handling admin notices */
-    require_once( RC_MYCTF_DIR . 'inc/class.rc-myctf-notices.php' );
-    add_action( 'init', array( 'Rc_Myctf_Notices', 'init' ) );
+    require_once( RSFFT_DIR . 'inc/class.rsfft-notices.php' );
+    add_action( 'init', array( 'Rsfft_Notices', 'init' ) );
     
 }
 
@@ -111,13 +115,13 @@ if( is_admin() ){
 /**
  * Register activation hook
  */
-register_activation_hook( __FILE__, 'rc_myctf_plugin_activation' );
+register_activation_hook( __FILE__, 'rsfft_plugin_activation' );
 
 
 /**
  * Register deactivation hook
  */
-register_deactivation_hook( __FILE__, 'rc_myctf_plugin_deactivation' );
+register_deactivation_hook( __FILE__, 'rsfft_plugin_deactivation' );
 
 
 
@@ -130,19 +134,19 @@ register_deactivation_hook( __FILE__, 'rc_myctf_plugin_deactivation' );
 * @access public static
 * @return void
 */
-function rc_myctf_plugin_activation(){
+function rsfft_plugin_activation(){
 
   /**
   * Register uninstall hook in the plugin activation function
   */
-  register_uninstall_hook( __FILE__, 'rc_myctf_plugin_uninstall' );
+  register_uninstall_hook( __FILE__, 'rsfft_plugin_uninstall' );
 
    /** 
     * If the plugin options don't exist, create them
     * 
     */
   
-    // create the "rc_myctf_api_options" option
+    // create the "rsfft_api_options" option
     $api_settings_args = array(
         'app_consumer_key' => '',
         'app_consumer_secret' => '',
@@ -175,19 +179,6 @@ function rc_myctf_plugin_activation(){
         'nofollow_ext_links' => 1
     );
    
-    $tweets_args = array(
-        'display_tweet_border' => 1,
-        'display_header' => 1,
-        'display_profile_img_header' => 1,
-        'display_name_header' => 1,
-        'display_screen_name_header' => 1,
-        'display_date_header' => 1,
-        'display_footer' => 1,
-        'display_likes_footer' => 1,
-        'display_retweets_footer' => 1,
-        'display_screen_name_footer' => 0,
-        'display_date_footer' => 0, 
-    );
     
     $slider_args = array(
         'nav_arrows' => 0,
@@ -250,17 +241,69 @@ function rc_myctf_plugin_activation(){
     /*
      * Add the options if they don't exist
      */
-        add_option( 'rc_myctf_settings_options', $api_settings_args );
-        add_option( 'rc_myctf_customize_options', $customize_args );
-        add_option( 'rc_myctf_tweets_options', $tweets_args );
-        add_option( 'rc_myctf_slider_carousel_options', $slider_args );
-        add_option( 'rc_myctf_style_options', $style_args );
-        add_option( 'rc_myctf_tweets_options', $tweet_show_hide_args );
-        add_option( 'rc_myctf_support_options' );
-        add_option( 'rc_myctf_scodes_trans' );
+        add_option( 'rsfft_settings_options', $api_settings_args );
+        add_option( 'rsfft_customize_options', $customize_args );
+        add_option( 'rsfft_slider_carousel_options', $slider_args );
+        add_option( 'rsfft_style_options', $style_args );
+        add_option( 'rsfft_tweets_options', $tweet_show_hide_args );
+        add_option( 'rsfft_support_options' );
+        add_option( 'rsfft_scodes_trans' );
+        
+    /*
+     * Check if user has been using the plugin with old options with
+     * "rc_myctf_" prefix. If those options exist, then copy their value to 
+     * the newer options above. And delete the older options.
+     */
+     rsfft_manage_older_options();
 
 } //ends plugin activation function
     
+
+
+/*
+ * When the plugin is first updated to version 1.2.3 or above, then the older prefix 
+ * "rc_myctf_" no longer exists. The options are now renamed with prefix "rsfft". To ensure 
+ * that the user defined options & settings still work, we will simply check if those options 
+ * exist. If they do, then we will copy them to their respective new renamed options.
+ * 
+ * @since 1.2.3
+ * @access public
+ * @return void
+ */
+function rsfft_manage_older_options(){
+    
+    //check if any of the older options exist, in this case the 'rc_myctf_settings_options' options
+    if ( get_option( 'rc_myctf_settings_options' ) ) {
+        
+        //if true means the options exists. Therfore, retrieve all of the options.
+        $old_settings_options = get_option( 'rc_myctf_settings_options' );
+        $old_customize_options = get_option( 'rc_myctf_customize_options' );
+        $old_slider_carousel_options = get_option( 'rc_myctf_slider_carousel_options' );
+        $old_style_options = get_option( 'rc_myctf_style_options' );
+        $old_tweets_options = get_option( 'rc_myctf_tweets_options' );
+        
+        //now assign these user defined values onto the new options with prefix "rsfft_"
+        update_option( 'rsfft_settings_options', $old_settings_options );
+        update_option( 'rsfft_customize_options', $old_customize_options );
+        update_option( 'rsfft_slider_carousel_options', $old_slider_carousel_options );
+        update_option( 'rsfft_style_options', $old_style_options );
+        update_option( 'rsfft_tweets_options', $old_tweets_options );
+        
+        //now delete the older options as they are no longer needed
+        delete_option( 'rc_myctf_settings_options' );
+        delete_option( 'rc_myctf_customize_options' );
+        delete_option( 'rc_myctf_slider_carousel_options' );
+        delete_option( 'rc_myctf_style_options' );
+        delete_option( 'rc_myctf_tweets_options' );
+        delete_option( 'rc_myctf_support_options' );
+        delete_option( 'rc_myctf_scodes_trans' );
+        
+    }
+    
+    return;
+    
+}//ends rsfft_manage_older_options
+
 
 
 /*
@@ -270,7 +313,7 @@ function rc_myctf_plugin_activation(){
 * @access public static
 * @return void
 */
-function rc_myctf_plugin_deactivation(){
+function rsfft_plugin_deactivation(){
  
 }
 
@@ -278,26 +321,26 @@ function rc_myctf_plugin_deactivation(){
 /*
 * Perform clean up function on plugin uninstall/removal
 */
-function rc_myctf_plugin_uninstall(){
+function rsfft_plugin_uninstall(){
 
    /*
-    * Remove options if "rc_myctf_settings_options['preserve_settings'] 
+    * Remove options if "rsfft_settings_options['preserve_settings'] 
     */
-   $options = get_option( 'rc_myctf_settings_options' );
+   $options = get_option( 'rsfft_settings_options' );
    $preserve_settings = $options[ 'preserve_settings' ];
 
    //Do not delete options if $preserve_settings value is true
    if( $preserve_settings == FALSE ){
 
            //delete plugin options
-           delete_option( 'rc_myctf_settings_options' );
-           delete_option( 'rc_myctf_customize_options' );
-           delete_option( 'rc_myctf_tweets_options' );
-           delete_option( 'rc_myctf_slider_carousel_options' );
-           delete_option( 'rc_myctf_style_options' );
-           delete_option( 'rc_myctf_tweets_options' );
-           delete_option( 'rc_myctf_support_options' );
-           delete_option( 'rc_myctf_scodes_trans' );
+           delete_option( 'rsfft_settings_options' );
+           delete_option( 'rsfft_customize_options' );
+           delete_option( 'rsfft_tweets_options' );
+           delete_option( 'rsfft_slider_carousel_options' );
+           delete_option( 'rsfft_style_options' );
+           delete_option( 'rsfft_tweets_options' );
+           delete_option( 'rsfft_support_options' );
+           delete_option( 'rsfft_scodes_trans' );
            
    }
 }
@@ -307,24 +350,24 @@ function rc_myctf_plugin_uninstall(){
 /**
  * Enqueue style sheet
  */
-function rc_myctf_enqueue_styles(){
+function rsfft_enqueue_styles(){
     
     /* Enqueue the front-end plugin css */
-    wp_enqueue_style( 'rc_myctf_style', RC_MYCTF_URI . 'css/rc-myctf.css', '', '1.0' );
+    wp_enqueue_style( 'rsfft_style', RSFFT_URI . 'css/rsfft.css', '', '1.0' );
     
     /* owl carousel stylesheets */
-    wp_enqueue_style( 'rc_myctf_owl_carousel', RC_MYCTF_URI . 'css/owl.carousel.min.css' );
+    wp_enqueue_style( 'rsfft_owl_carousel', RSFFT_URI . 'css/owl.carousel.min.css' );
     
     /* generating custom css based on user chosen options */
-    $rc_myctf_custom_css = rc_myctf_generate_custom_css();
-    wp_add_inline_style( 'rc_myctf_style', $rc_myctf_custom_css );
+    $rsfft_custom_css = rsfft_generate_custom_css();
+    wp_add_inline_style( 'rsfft_style', $rsfft_custom_css );
     
 }
 
 /**
  * Enqueues admin style sheet
  */
-function rc_myctf_enqueue_admin_scripts(){
+function rsfft_enqueue_admin_scripts(){
     
     /* fetch current page name */
     $current_screen = get_current_screen();
@@ -335,28 +378,28 @@ function rc_myctf_enqueue_admin_scripts(){
      */
     if (strpos( $current_screen->base, 'myctf-page' ) !== false ) {
         /* Load admin styles */
-        wp_enqueue_style( 'rc_myctf_admin_style', RC_MYCTF_URI . 'css/rc-myctf-admin.css', '', '1.0' );
+        wp_enqueue_style( 'rsfft_admin_style', RSFFT_URI . 'css/rsfft-admin.css', '', '1.0' );
         
         /* Add the color picker css file */
         wp_enqueue_style( 'wp-color-picker' );
         
         /* Include admin js file for our plugin */
-        wp_enqueue_script( 'rc_myctf_admin_scripts', RC_MYCTF_URI . 'js/rc_myctf_admin_scripts.js', array( 'wp-color-picker' ), '1.0', true );
+        wp_enqueue_script( 'rsfft_admin_scripts', RSFFT_URI . 'js/rsfft_admin_scripts.js', array( 'wp-color-picker' ), '1.0', true );
         
     }//ends if
      
-}//ends rc_myctf_enqueue_admin_scripts
+}//ends rsfft_enqueue_admin_scripts
 
 
 /**
  * Enqueue scripts
  */
-function rc_myctf_enqueue_scripts(){
+function rsfft_enqueue_scripts(){
     
     if ( !is_admin() ){
-        wp_enqueue_script( 'rc_myctf_scripts', RC_MYCTF_URI . 'js/rc-myctf-scripts.js', array( 'jquery' ), '1.0', true );
+        wp_enqueue_script( 'rsfft_scripts', RSFFT_URI . 'js/rsfft-scripts.js', array( 'jquery' ), '1.0', true );
         wp_enqueue_script( 'masonry' );
-        wp_enqueue_script( 'rc_myctf_owl_scripts', RC_MYCTF_URI . 'js/owl.carousel.min.js', array( 'jquery' ), true );
+        wp_enqueue_script( 'rsfft_owl_scripts', RSFFT_URI . 'js/owl.carousel.min.js', array( 'jquery' ), true );
     }
     
 }
@@ -364,11 +407,11 @@ function rc_myctf_enqueue_scripts(){
 /*
  * Load plugin textdomain
  */
-function rc_myctf_load_textdomain() {
+function rsfft_load_textdomain() {
     
     /* Loads the translation for the plugin. */
     if ( !is_admin() ) {
-        load_plugin_textdomain( 'my-custom-twitter-feed', false, RC_MYCTF_DIR . 'languages' );
+        load_plugin_textdomain( 'my-custom-twitter-feed', false, RSFFT_DIR . 'languages' );
     }
 }
 
@@ -379,10 +422,10 @@ function rc_myctf_load_textdomain() {
  * @since   1.2.1
  * @return  string  styles in string format.
  */
-function rc_myctf_generate_custom_css() {
+function rsfft_generate_custom_css() {
     
     /* Extraction various options */
-    $options = get_option( 'rc_myctf_style_options' );
+    $options = get_option( 'rsfft_style_options' );
 
     /*
      * Tweet General Options
@@ -400,20 +443,20 @@ function rc_myctf_generate_custom_css() {
     $tweet_bg_color = !isset( $options[ 'tweet_bg_color' ] ) || empty( $options[ 'tweet_bg_color' ] ) ? 'inherit' : sanitize_text_field( $options[ 'tweet_bg_color' ] );
     
     //adding to css
-    $rc_myctf_custom_css = ".rc_myctf_tweets_wrap{ font-size: $font_size_rem; color: $font_color; }";
-    $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap a{ color: $font_color; }";
+    $rsfft_custom_css = ".rsfft_tweets_wrap{ font-size: $font_size_rem; color: $font_color; }";
+    $rsfft_custom_css .= " .rsfft_tweets_wrap a{ color: $font_color; }";
 
     if ( $link_text_decoration != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap a{ text-decoration: $link_text_decoration; box-shadow: none; border: 0; }";
-        $rc_myctf_custom_css .= " .widget .rc_myctf_tweets_wrap a{ text-decoration: $link_text_decoration; box-shadow: none; border: 0; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap a{ text-decoration: $link_text_decoration; box-shadow: none; border: 0; }";
+        $rsfft_custom_css .= " .widget .rsfft_tweets_wrap a{ text-decoration: $link_text_decoration; box-shadow: none; border: 0; }";
     }
     
     if ( $tweet_bg_color != 'inherit' ) {
-        $rc_myctf_custom_css .= " .tweet_item{ background-color: $tweet_bg_color; }";
+        $rsfft_custom_css .= " .tweet_item{ background-color: $tweet_bg_color; }";
     }
     
     if ( $feed_bg_color != 'inherit' ) {
-        $rc_myctf_custom_css .= " #content{ background-color: $feed_bg_color; )";
+        $rsfft_custom_css .= " #content{ background-color: $feed_bg_color; )";
     }
     
     
@@ -444,54 +487,54 @@ function rc_myctf_generate_custom_css() {
     
     
     //adding to css
-    $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .twitter_header_meta{ font-size: $font_size_header_percent; }";
+    $rsfft_custom_css .= " .rsfft_tweets_wrap .twitter_header_meta{ font-size: $font_size_header_percent; }";
     
     //when not inherit, it should fetch from plugin stylesheet. And not inherit from parent.
     if ( $name_font_color_header != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .name-of-tweeter{ color: $name_font_color_header; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .name-of-tweeter{ color: $name_font_color_header; }";
     }
     
     //when inherit, it should inherit from default theme
     if ( $name_font_weight_header != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .name-of-tweeter{ font-weight: $name_font_weight_header; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .name-of-tweeter{ font-weight: $name_font_weight_header; }";
     }
     
     //inheriting from parent
     if ( $screen_name_font_size_header_percent != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .screen_name{ font-size: $screen_name_font_size_header_percent; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .screen_name{ font-size: $screen_name_font_size_header_percent; }";
     }
     
     //inheriting from parent
     if ( $screen_name_font_color_header != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .screen_name{ color: $screen_name_font_color_header; }";
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .screen_name a{ color: $screen_name_font_color_header; border-bottom: 0; box-shadow: none; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .screen_name{ color: $screen_name_font_color_header; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .screen_name a{ color: $screen_name_font_color_header; border-bottom: 0; box-shadow: none; }";
     }
     
     //Inheriting from parent.
     if ( $screen_name_font_weight_header != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .screen_name{ font-weight: $screen_name_font_weight_header; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .screen_name{ font-weight: $screen_name_font_weight_header; }";
     }
     
     //inheriting from parent
     if ( $date_font_size_header_percent != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .tweet_date{ font-size: $date_font_size_header_percent; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .tweet_date{ font-size: $date_font_size_header_percent; }";
     }
     
     //when inherit, it should fetch from plugin stylesheet. And not inherit from parent.
     if ( $date_font_color_header != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .tweet_date{ color: $date_font_color_header; }";
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .tweet_date a{ color: $date_font_color_header; border-bottom: 0; box-shadow: none; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .tweet_date{ color: $date_font_color_header; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .tweet_date a{ color: $date_font_color_header; border-bottom: 0; box-shadow: none; }";
     }
     
     //Inheriting from parent
     if ( $date_font_weight_header != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .tweet_date{ font-weight: $date_font_weight_header; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .tweet_date{ font-weight: $date_font_weight_header; }";
     }
     
     //inheriting from parent
     if ( $link_text_decoration_header != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .twitter_header_meta a{ text-decoration: $link_text_decoration_header; box-shadow: none; border: 0; }";
-        $rc_myctf_custom_css .= " .widget .rc_myctf_tweets_wrap .twitter_header_meta a{ text-decoration: $link_text_decoration_header; box-shadow: none; border: 0; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .twitter_header_meta a{ text-decoration: $link_text_decoration_header; box-shadow: none; border: 0; }";
+        $rsfft_custom_css .= " .widget .rsfft_tweets_wrap .twitter_header_meta a{ text-decoration: $link_text_decoration_header; box-shadow: none; border: 0; }";
     }
     
     
@@ -506,9 +549,9 @@ function rc_myctf_generate_custom_css() {
     $link_color_tweet = !isset( $options[ 'link_color_tweet' ] ) || empty( $options[ 'link_color_tweet' ] ) ? 'inherit' : sanitize_text_field( $options[ 'link_color_tweet' ] );
     $link_text_decoration_tweet = isset( $options[ 'link_text_decoration_tweet' ] ) ? sanitize_text_field( $options[ 'link_text_decoration_tweet' ] ) : 'inherit';
      
-    $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .tweet{ font-size: $font_size_tweet_percent; color: $font_color_tweet; font-weight: $font_weight_tweet; }";
+    $rsfft_custom_css .= " .rsfft_tweets_wrap .tweet{ font-size: $font_size_tweet_percent; color: $font_color_tweet; font-weight: $font_weight_tweet; }";
     if ( $link_text_decoration_tweet != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .tweet a{ color: $link_color_tweet; text-decoration: $link_text_decoration_tweet; border-bottom: none;  }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .tweet a{ color: $link_color_tweet; text-decoration: $link_text_decoration_tweet; border-bottom: none;  }";
     }
     
     /*
@@ -529,56 +572,56 @@ function rc_myctf_generate_custom_css() {
     
     
     //adding to css
-    $rc_myctf_custom_css .= " .rc_myctf_tweet_footer{ font-size: $font_size_footer_percent; }";
+    $rsfft_custom_css .= " .rsfft_tweet_footer{ font-size: $font_size_footer_percent; }";
     
     //when not inherit, it should fetch from plugin stylesheet. And not inherit from parent.
     if ( $like_icon_color_footer != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_twitter_heart{ color: $like_icon_color_footer; }";
+        $rsfft_custom_css .= " .rsfft_twitter_heart{ color: $like_icon_color_footer; }";
     }
     
     //Inheriting from parent.
     if ( $like_count_color_footer != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_favorite_count{ color: $like_count_color_footer; }";
+        $rsfft_custom_css .= " .rsfft_favorite_count{ color: $like_count_color_footer; }";
     }
     
     //when not inherit, it should fetch from plugin stylesheet. And not inherit from parent.
     if ( $retweet_icon_color_footer != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_retweet_sign{ color: $retweet_icon_color_footer; }";
+        $rsfft_custom_css .= " .rsfft_retweet_sign{ color: $retweet_icon_color_footer; }";
     }
     
     //Inheriting from parent.
     if ( $retweet_count_color_footer != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_retweet_count{ color: $retweet_count_color_footer; }";
+        $rsfft_custom_css .= " .rsfft_retweet_count{ color: $retweet_count_color_footer; }";
     }
     
     //when not inherit, it should fetch from plugin stylesheet. And not inherit from parent.
     if ( $screen_name_font_color_footer != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .screen_name_footer{ color: $screen_name_font_color_footer; }";
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .screen_name_footer a{ color: $screen_name_font_color_footer; border-bottom: 0; box-shadow: none; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .screen_name_footer{ color: $screen_name_font_color_footer; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .screen_name_footer a{ color: $screen_name_font_color_footer; border-bottom: 0; box-shadow: none; }";
     }
     
     //Inheriting from parent.
     if ( $screen_name_font_weight_footer != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .screen_name_footer{ font-weight: $screen_name_font_weight_footer; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .screen_name_footer{ font-weight: $screen_name_font_weight_footer; }";
     }
     
     //when not inherit, it should fetch from plugin stylesheet. And not inherit from parent.
     if ( $date_font_color_footer != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .tweet_date_footer{ color: $date_font_color_footer; }";
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .tweet_date_footer a{ color: $date_font_color_footer; border-bottom:0; box-shadow: none }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .tweet_date_footer{ color: $date_font_color_footer; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .tweet_date_footer a{ color: $date_font_color_footer; border-bottom:0; box-shadow: none }";
     }
     
     //Inheriting from parent.
     if ( $date_font_weight_footer != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .tweet_date_footer{ font-weight: $date_font_weight_footer; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .tweet_date_footer{ font-weight: $date_font_weight_footer; }";
     }
     
     //inheriting from parent
     if ( $link_text_decoration_footer != 'inherit' ) {
-        $rc_myctf_custom_css .= " .rc_myctf_tweets_wrap .rc_myctf_tweet_footer a{ text-decoration: $link_text_decoration_footer; box-shadow: none; border: 0; }";
-        $rc_myctf_custom_css .= " .widget .rc_myctf_tweets_wrap .rc_myctf_tweet_footer a{ text-decoration: $link_text_decoration_footer; box-shadow: none; border: 0; }";
+        $rsfft_custom_css .= " .rsfft_tweets_wrap .rsfft_tweet_footer a{ text-decoration: $link_text_decoration_footer; box-shadow: none; border: 0; }";
+        $rsfft_custom_css .= " .widget .rsfft_tweets_wrap .rsfft_tweet_footer a{ text-decoration: $link_text_decoration_footer; box-shadow: none; border: 0; }";
     }
         
-    return $rc_myctf_custom_css;
+    return $rsfft_custom_css;
     
 }

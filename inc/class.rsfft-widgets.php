@@ -17,7 +17,7 @@ if ( !defined( 'ABSPATH' ) ){
 }
 
 
-class Rc_Myctf_Widget extends WP_Widget {
+class Rsfft_Widget extends WP_Widget {
     
     /**
      * Holds the id of the current widget.
@@ -40,10 +40,10 @@ class Rc_Myctf_Widget extends WP_Widget {
     public function __construct() {
     
         parent::__construct(
-                'rc_myctf_tweets_widget',               //Base ID
+                'rsfft_tweets_widget',               //Base ID
                 'My Twitter Feed', 
                 array(
-                        'classname' => 'rc_myctf_tweets_widget_class',
+                        'classname' => 'rsfft_tweets_widget_class',
                         'description' => 'Displays your Twitter feed',
                     )
                 );
@@ -211,8 +211,8 @@ class Rc_Myctf_Widget extends WP_Widget {
          * This widget has been updated. So we will clear its cache
          * so it can load fresh tweets as per the new options saved.
          */
-        $rc_myctf_cache= new Rc_Myctf_Cache();
-        $rc_myctf_cache->rc_myctf_delete_tweets_transient( $this->shortcode_id );
+        $rsfft_cache= new Rsfft_Cache();
+        $rsfft_cache->rsfft_delete_tweets_transient( $this->shortcode_id );
         
         return $instance;
         
@@ -244,7 +244,7 @@ class Rc_Myctf_Widget extends WP_Widget {
             echo $args[ 'before_title' ] . $title . $args[ 'after_title' ];
         }
         
-        $shortcode = $this->rc_myctf_construct_shortcode_for_widget( $instance );
+        $shortcode = $this->rsfft_construct_shortcode_for_widget( $instance );
         echo do_shortcode( $shortcode );
         //echo $shortcode;
         
@@ -265,7 +265,7 @@ class Rc_Myctf_Widget extends WP_Widget {
      * 
      * @return  string  $shortcode      Constructed shortcode string
      */
-    private function rc_myctf_construct_shortcode_for_widget( $instance ) {
+    private function rsfft_construct_shortcode_for_widget( $instance ) {
         
         /* adding widget's id with the page id to make the shortcode_id unique on the page */
         global $post;
@@ -307,18 +307,18 @@ class Rc_Myctf_Widget extends WP_Widget {
         $shortcode .= ']';
         return $shortcode;
             
-    }//ends function rc_myctf_construct_shortcode_for_widget
+    }//ends function rsfft_construct_shortcode_for_widget
 
 
     
 }//ends class
 
 /* use widgets_init action hook to register our widgets register function */
-add_action( 'widgets_init', 'rc_myctf_register_widgets' );
+add_action( 'widgets_init', 'rsfft_register_widgets' );
 
 /* function to register the widget */
-function rc_myctf_register_widgets() {
-    register_widget( 'Rc_Myctf_Widget' );
+function rsfft_register_widgets() {
+    register_widget( 'Rsfft_Widget' );
 }
 
 /* allow shortcode in widgets */

@@ -16,66 +16,66 @@ if ( !defined( 'ABSPATH' ) ){
 }
 
 
-class Rc_Myctf_Twitter_Connect {
+class Rsfft_Twitter_Connect {
     
     /**
      *  @var string Oauth access token 
      */
-    private $rc_myctf_oauth_access_token;
+    private $rsfft_oauth_access_token;
     
     
     /** 
      * @var string Oauth access token secret 
      */
-    private $rc_myctf_oauth_access_token_secret;
+    private $rsfft_oauth_access_token_secret;
     
     
     /** 
      * @var string Consumer key 
      */
-    private $rc_myctf_consumer_key;
+    private $rsfft_consumer_key;
     
     
     /** 
      * @var string Consumer Secret 
      */
-    private $rc_myctf_consumer_secret;
+    private $rsfft_consumer_secret;
     
     
     /**
      * @var array POST parameters
      */
-    private $rc_myctf_post_fields;
+    private $rsfft_post_fields;
     
     
     /**
      * @var string GET parameters
      */
-    private $rc_myctf_get_fields;
+    private $rsfft_get_fields;
     
     
     /**
      * @var array OAuth Credentials
      */
-    private $rc_myctf_oauth_details;
+    private $rsfft_oauth_details;
     
     
     /**
      * @var string Twitter's request URL
      */
-    private $rc_myctf_request_url;
+    private $rsfft_request_url;
     
     
     /**
      * @var string Request method
      */
-    private $rc_myctf_request_method;
+    private $rsfft_request_method;
     
     
     /*
      * @var string feed_type [user_timeline, search_timeline, hashtags_timeline]
      */
-    private $rc_myctf_feed_type;
+    private $rsfft_feed_type;
     
     
     
@@ -95,10 +95,10 @@ class Rc_Myctf_Twitter_Connect {
         }
         
         /* set the class properties variables now */
-        $this->rc_myctf_oauth_access_token = sanitize_text_field( $settings[ 'oauth_access_token' ] );
-        $this->rc_myctf_oauth_access_token_secret = sanitize_text_field( $settings[ 'oauth_access_token_secret' ] );
-        $this->rc_myctf_consumer_key = sanitize_text_field( $settings[ 'consumer_key' ] );
-        $this->rc_myctf_consumer_secret = sanitize_text_field( $settings[ 'consumer_secret' ] );
+        $this->rsfft_oauth_access_token = sanitize_text_field( $settings[ 'oauth_access_token' ] );
+        $this->rsfft_oauth_access_token_secret = sanitize_text_field( $settings[ 'oauth_access_token_secret' ] );
+        $this->rsfft_consumer_key = sanitize_text_field( $settings[ 'consumer_key' ] );
+        $this->rsfft_consumer_secret = sanitize_text_field( $settings[ 'consumer_secret' ] );
         
     }//ends constructor
     
@@ -115,7 +115,7 @@ class Rc_Myctf_Twitter_Connect {
      * 
      * @return $this
      */
-    public function rc_myctf_build_oauth( $feed_type, $request_method ) {
+    public function rsfft_build_oauth( $feed_type, $request_method ) {
         
         /** Make sure the request is either POST or GET */
         if ( !in_array( strtolower( $request_method ), array( 'post', 'get' ) ) ) {
@@ -126,22 +126,22 @@ class Rc_Myctf_Twitter_Connect {
         $san_feed_type = wp_strip_all_tags( $feed_type );
         
         /* set $request_url class property according based on $feed_type */
-        $this->rc_myctf_request_url = $this->rc_myctf_get_base_url_based_on_feed_type( $san_feed_type );
+        $this->rsfft_request_url = $this->rsfft_get_base_url_based_on_feed_type( $san_feed_type );
         
         
         /* building the $oauth_credentials value */
         $oauth_credentials = array(
-            'oauth_consumer_key' => $this->rc_myctf_consumer_key,
+            'oauth_consumer_key' => $this->rsfft_consumer_key,
             'oauth_nonce' => time(),
             'oauth_signature_method' => 'HMAC-SHA1',
-            'oauth_token' => $this->rc_myctf_oauth_access_token,
+            'oauth_token' => $this->rsfft_oauth_access_token,
             'oauth_timestamp' => time(),
             'oauth_version' => '1.0'
         );
         
-        if ( !is_null( $this->rc_myctf_get_fields ) ) {
+        if ( !is_null( $this->rsfft_get_fields ) ) {
             //removing question mark and at the same time converting to an array with key-value pairs
-            $get_fields = str_replace( '?', '', explode( '&', $this->rc_myctf_get_fields ) );
+            $get_fields = str_replace( '?', '', explode( '&', $this->rsfft_get_fields ) );
             
             foreach( $get_fields as $field ) {
                 
@@ -158,22 +158,22 @@ class Rc_Myctf_Twitter_Connect {
         }//edns if
         
         /* Generate the signature base string */
-        $signature_base_string = $this->rc_myctf_build_signature_base_string( $request_method, $oauth_credentials );
+        $signature_base_string = $this->rsfft_build_signature_base_string( $request_method, $oauth_credentials );
         
         /* Finally create the OAuth Signature and add it to the $oauth_credentials array */
-        $oauth_credentials[ 'oauth_signature' ] = $this->rc_myctf_generate_oauth_signature( $signature_base_string );
+        $oauth_credentials[ 'oauth_signature' ] = $this->rsfft_generate_oauth_signature( $signature_base_string );
         
         
         //save the request_url for use by HTTP API
-        //$this->rc_myctf_request_url = $request_url;
+        //$this->rsfft_request_url = $request_url;
         
         //save the OAuth Details
-        $this->rc_myctf_oauth_details = $oauth_credentials;
-        $this->rc_myctf_request_method = $request_method;
+        $this->rsfft_oauth_details = $oauth_credentials;
+        $this->rsfft_request_method = $request_method;
         
         return $this;
         
-    }//ends rc_myctf_build_oauth
+    }//ends rsfft_build_oauth
 
     
 
@@ -185,12 +185,12 @@ class Rc_Myctf_Twitter_Connect {
      * @param array $post_fields array of POST parameters
      * @return $this
      */
-    public function rc_myctf_set_post_fields( array $post_fields ) {
+    public function rsfft_set_post_fields( array $post_fields ) {
         
-        $this->rc_myctf_post_fields = $post_fields;
+        $this->rsfft_post_fields = $post_fields;
         return $this;
         
-    }//ends rc_myctf_set_post_fields
+    }//ends rsfft_set_post_fields
     
     
     
@@ -202,13 +202,13 @@ class Rc_Myctf_Twitter_Connect {
      * @param string $get_field
      * @return $this
      */
-    public function rc_myctf_set_get_field( $get_fields ) {
+    public function rsfft_set_get_field( $get_fields ) {
         
-        $this->rc_myctf_get_fields = strip_tags( $get_fields );
+        $this->rsfft_get_fields = strip_tags( $get_fields );
         
         return $this;
         
-    }//ends rc_myctf_set_get_field
+    }//ends rsfft_set_get_field
     
     
     
@@ -225,11 +225,11 @@ class Rc_Myctf_Twitter_Connect {
      * 
      * @return string
      */
-    private function rc_myctf_build_signature_base_string( $request_method, $oauth_params ) {
+    private function rsfft_build_signature_base_string( $request_method, $oauth_params ) {
         
         
         //retrieve the $request_property of the class
-        $request_url = esc_url( $this->rc_myctf_request_url );
+        $request_url = esc_url( $this->rsfft_request_url );
         
         //save the parameters as key value pair bounded together with '&'
         $string_params = array();
@@ -244,7 +244,7 @@ class Rc_Myctf_Twitter_Connect {
         
         return "$request_method&" . rawurlencode( $request_url ) . '&' . rawurlencode(implode( '&', $string_params) );
         
-    }//ends rc_myctf_build_signature_base_string
+    }//ends rsfft_build_signature_base_string
     
     
     
@@ -256,17 +256,17 @@ class Rc_Myctf_Twitter_Connect {
      * @param string $signature_base_string
      * @return string $oauth_signature
      */
-    private function rc_myctf_generate_oauth_signature( $signature_base_string ) {
+    private function rsfft_generate_oauth_signature( $signature_base_string ) {
         
         //generating the signing key required for the OAuth Signature
-        $signing_key = rawurlencode( $this->rc_myctf_consumer_secret ) . '&' . rawurlencode( $this->rc_myctf_oauth_access_token_secret );
+        $signing_key = rawurlencode( $this->rsfft_consumer_secret ) . '&' . rawurlencode( $this->rsfft_oauth_access_token_secret );
         
         /* Creating the OAuth Signature */
         $oauth_signature = base64_encode( hash_hmac( 'sha1', $signature_base_string, $signing_key, true ) );
         
         return $oauth_signature;
         
-    }//ends rc_myctf_generate_oauth_signature
+    }//ends rsfft_generate_oauth_signature
     
     
     
@@ -276,12 +276,12 @@ class Rc_Myctf_Twitter_Connect {
      * @return string
      * @since 1.2
      */
-    public function rc_myctf_authorization_header() {
+    public function rsfft_authorization_header() {
         
         $header = 'OAuth ';
         
         $oauth_params = array();
-        foreach ( $this->rc_myctf_oauth_details as $key => $value ) {
+        foreach ( $this->rsfft_oauth_details as $key => $value ) {
             
             $oauth_params[] = "$key=\"" . rawurlencode( $value ) . '"';
         }
@@ -290,7 +290,7 @@ class Rc_Myctf_Twitter_Connect {
         
         return $header;
         
-    }//ends rc_myctf_authorization_header
+    }//ends rsfft_authorization_header
     
     
     
@@ -300,9 +300,9 @@ class Rc_Myctf_Twitter_Connect {
      * @since 1.2
      * @return string
      */
-    public function rc_myctf_process_request() {
+    public function rsfft_process_request() {
         
-        $header = $this->rc_myctf_authorization_header();
+        $header = $this->rsfft_authorization_header();
         
         $args = array(
             'headers' => array( 'Authorization' => $header ),
@@ -310,18 +310,18 @@ class Rc_Myctf_Twitter_Connect {
             'sslverify' => FALSE
         );
         
-        if ( !is_null( $this->rc_myctf_post_fields ) ) {
+        if ( !is_null( $this->rsfft_post_fields ) ) {
             
-            $args[ 'body' ] = $this->rc_myctf_post_fields;
+            $args[ 'body' ] = $this->rsfft_post_fields;
             
-            $response = wp_remote_post( $this->rc_myctf_request_url, $args );
+            $response = wp_remote_post( $this->rsfft_request_url, $args );
             
             return $response;
             //return wp_remote_retrieve_body( $response );
         } else {
             
             //add the GET parameters to the Twitter request url or endpoint
-            $url = $this->rc_myctf_request_url . $this->rc_myctf_get_fields;
+            $url = $this->rsfft_request_url . $this->rsfft_get_fields;
             
             $response = wp_remote_get( $url, $args );
             return $response;
@@ -330,7 +330,7 @@ class Rc_Myctf_Twitter_Connect {
             
         }//ends if
         
-    }//ends rc_myctf_process_request
+    }//ends rsfft_process_request
     
     
     
@@ -343,7 +343,7 @@ class Rc_Myctf_Twitter_Connect {
      * @param string $feed_type Current feed type for the shortcode
      * @return string Twitter base URL where request needs to be sent
      */
-    private function rc_myctf_get_base_url_based_on_feed_type( $feed_type ) {
+    private function rsfft_get_base_url_based_on_feed_type( $feed_type ) {
         
         /* set request_url as empty */
         $request_url = '';
@@ -365,7 +365,7 @@ class Rc_Myctf_Twitter_Connect {
         
         return $request_url;
         
-    }//ends rc_myctf_get_base_url_based_on_feed_type
+    }//ends rsfft_get_base_url_based_on_feed_type
     
     
-}//ends Rc_Myctf_Twitter_Connect
+}//ends Rsfft_Twitter_Connect

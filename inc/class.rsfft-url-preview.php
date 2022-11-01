@@ -16,7 +16,7 @@ if ( !defined( 'ABSPATH' ) ){
 }
 
 
-class Rc_Myctf_Url_Preview {
+class Rsfft_Url_Preview {
      
     
     /*
@@ -123,12 +123,12 @@ class Rc_Myctf_Url_Preview {
             $this->websiteDetails[ "Image" ] = '';
             $this->websiteDetails[ "LargestImgDetails" ] = '';
         } else {
-            $this->websiteDetails[ "Title" ] = sanitize_text_field( $this->rc_myctf_get_website_title() );
-            $this->websiteDetails[ "Description" ] = sanitize_text_field( $this->rc_myctf_get_website_description() );
-            //$this->websiteDetails[ "Keywords" ] = sanitize_text_field( $this->rc_myctf_get_website_keywords() );
-            $this->websiteDetails[ "OgImage" ] = esc_url( $this->rc_myctf_get_website_og_image() );
-            $this->websiteDetails[ "Image" ] = $this->rc_myctf_get_website_images();                //this is an array of iamges
-            $this->websiteDetails[ "LargestImgDetails" ] = $this->rc_myctf_fetch_largest_image();
+            $this->websiteDetails[ "Title" ] = sanitize_text_field( $this->rsfft_get_website_title() );
+            $this->websiteDetails[ "Description" ] = sanitize_text_field( $this->rsfft_get_website_description() );
+            //$this->websiteDetails[ "Keywords" ] = sanitize_text_field( $this->rsfft_get_website_keywords() );
+            $this->websiteDetails[ "OgImage" ] = esc_url( $this->rsfft_get_website_og_image() );
+            $this->websiteDetails[ "Image" ] = $this->rsfft_get_website_images();                //this is an array of iamges
+            $this->websiteDetails[ "LargestImgDetails" ] = $this->rsfft_fetch_largest_image();
             //return json_encode($this->websiteDetails);
             
             /* store this value in transient so that it can be fetched using cache */
@@ -147,7 +147,7 @@ class Rc_Myctf_Url_Preview {
      * @access public
      * @return string
      */
-    public function rc_myctf_get_website_title(){
+    public function rsfft_get_website_title(){
         
         /* Check if "title" exists in object "dom" */
         
@@ -156,13 +156,13 @@ class Rc_Myctf_Url_Preview {
             
             /* shorten the title to under 100 characters */
             if ( !empty( $titleValue ) ) {
-                $title = sanitize_text_field( $this->rc_myctf_fix_title_desc_length( $titleValue, $type='title' ) );
+                $title = sanitize_text_field( $this->rsfft_fix_title_desc_length( $titleValue, $type='title' ) );
                 return $title;
             }
             
             return '';
             
-    }//ends rc_myctf_get_website_title
+    }//ends rsfft_get_website_title
     
     
     /*
@@ -172,7 +172,7 @@ class Rc_Myctf_Url_Preview {
      * @access public
      * @return string
      */
-    public function rc_myctf_get_website_description(){
+    public function rsfft_get_website_description(){
         $descriptionNode = $this->dom->getElementsByTagName( "meta" );
         for ($i=0; $i < $descriptionNode->length; $i++) {
              $descriptionItem = $descriptionNode->item($i);
@@ -184,7 +184,7 @@ class Rc_Myctf_Url_Preview {
                  
                 /* shorten the title to under 100 characters */
                 if ( !empty( $descValue ) ) {
-                    $desc = sanitize_text_field( $this->rc_myctf_fix_title_desc_length( $descValue, $type='desc' ) );
+                    $desc = sanitize_text_field( $this->rsfft_fix_title_desc_length( $descValue, $type='desc' ) );
                     return $desc;
                 } else {
                     return '';
@@ -202,7 +202,7 @@ class Rc_Myctf_Url_Preview {
      * @access public
      * @return string
      */
-    public function rc_myctf_get_website_keywords(){
+    public function rsfft_get_website_keywords(){
         $keywordNode = $this->dom->getElementsByTagName( "meta" );
         for ( $i=0; $i < $keywordNode->length; $i++ ) {
              $keywordItem = $keywordNode->item( $i );
@@ -220,14 +220,14 @@ class Rc_Myctf_Url_Preview {
      * @access public
      * @return string
      */
-    public function rc_myctf_get_website_og_image(){
+    public function rsfft_get_website_og_image(){
         $descriptionNode = $this->dom->getElementsByTagName( "meta" );
         for ( $i=0; $i < $descriptionNode->length; $i++ ) {
              $descriptionItem = $descriptionNode->item( $i );
              if( $descriptionItem->getAttribute( 'property' ) == "og:image" ){
                 //return $descriptionItem->getAttribute( 'content' );
                 $OgImg = $descriptionItem->getAttribute( 'content' );
-                $ObImgAbs = $this->rc_myctf_convert_relative_to_absolute_url( $OgImg );
+                $ObImgAbs = $this->rsfft_convert_relative_to_absolute_url( $OgImg );
                 return $ObImgAbs;
              }
         }
@@ -242,7 +242,7 @@ class Rc_Myctf_Url_Preview {
      * @access public
      * @return array
      */
-    public function rc_myctf_get_website_images(){
+    public function rsfft_get_website_images(){
         
         /*
          * if already have found OgImage for this URL no need to go further.
@@ -279,7 +279,7 @@ class Rc_Myctf_Url_Preview {
      * @access public
      * @return array
      */
-    public function rc_myctf_fetch_largest_image() {
+    public function rsfft_fetch_largest_image() {
         
         /* 
          * if already have found OgImage for this URL no need to go further.
@@ -308,7 +308,7 @@ class Rc_Myctf_Url_Preview {
             return '';
         }
         
-        $largest_abs_img_url = $this->rc_myctf_convert_relative_to_absolute_url( $largest_image_src );
+        $largest_abs_img_url = $this->rsfft_convert_relative_to_absolute_url( $largest_image_src );
         
         if ( $largest_abs_img_url === FALSE ) {
             return '';
@@ -335,7 +335,7 @@ class Rc_Myctf_Url_Preview {
      * 
      * @return  $str_fixed  string
      */
-    private function rc_myctf_fix_title_desc_length( $string, $type) {
+    private function rsfft_fix_title_desc_length( $string, $type) {
         
         /* check the current string length */
         $str_length = strlen( $string );
@@ -375,7 +375,7 @@ class Rc_Myctf_Url_Preview {
      * @return  string  $abs_img_url    absolute image url
      * 
      */
-    private function rc_myctf_convert_relative_to_absolute_url( $img_to_check ) {
+    private function rsfft_convert_relative_to_absolute_url( $img_to_check ) {
         
         /* $img_to_check is empty, return */
         if ( empty( $img_to_check ) ) {
@@ -417,7 +417,7 @@ class Rc_Myctf_Url_Preview {
         
         return $abs_img_url;
         
-    }//ends rc_myctf_convert_relative_to_absolute_url
+    }//ends rsfft_convert_relative_to_absolute_url
     
     
     

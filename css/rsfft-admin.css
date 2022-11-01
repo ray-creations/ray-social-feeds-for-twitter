@@ -8,14 +8,14 @@ and open the template in the editor.
     Author     : Ray Creations
 */
 
-.rc_myctf_tip {
+.rsfft_tip {
     color: #999;
     margin-left: 10px;
     font-style: italic;
 }
 
 /*Fetch Token*/
-#rc_myctf_fetch_token {
+#rsfft_fetch_token {
     background-color: rgb(29, 161, 242);
     padding: 12px 25px;
     color: #fff;
@@ -25,36 +25,36 @@ and open the template in the editor.
 }
 
 
-#rc_myctf_fetch_token:hover {
+#rsfft_fetch_token:hover {
     background-color: #fff;
     color: rgb(29, 161, 242);
 }
 
 
 /* For Shortcode Table */
-.rc-myctf-scode-table {
+.rsfft-scode-table {
     margin: 2rem 0;
 }
 
 
-.rc-myctf-scode-table th {
+.rsfft-scode-table th {
     display: table-cell;
     vertical-align: inherit;
     font-weight: bold;
 }
 
-.rc-myctf-scode-table th:nth-child(1) {
+.rsfft-scode-table th:nth-child(1) {
     width: 15%;
 }
 
-.rc-myctf-scode-table th:nth-child(2) {
+.rsfft-scode-table th:nth-child(2) {
     width: 45%;
 }
 
-.rc-myctf-scode-table th:nth-child(3) {
+.rsfft-scode-table th:nth-child(3) {
     width: 40%;
 }
 
-.rc-myctf-scode-table .rc-myctf-theading {
+.rsfft-scode-table .rsfft-theading {
     background-color: #f5f3f3;
 }

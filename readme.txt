@@ -1,9 +1,9 @@
 === Ray Social Feeds For Twitter ===
 Contributors: raycreations, amritray, aparna19
 Tags: Twitter Feeds, Twitter Feeds WordPress, Twitter Feed, Twitter Widget, Twitter Gallery, Ray Social Feeds For Twitter
-Requires at least: 3.2
-Tested up to: 5.4
-Stable tag: 1.2.2
+Requires at least: 4.0 
+Tested up to: 5.9
+Stable tag: 1.2.3
 Requires PHP: 5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -11,7 +11,7 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Display clean, beautiful, highly customizable, responsive, yet powerful twitter feeds on your website from any Twitter account or your own Mentions timeline.
 
 == Description ==
-**Ray Social Feeds For Twitter** lets you display Twitter feeds beautifully on your website. You can display your own mentions timeline or tweets from any Tweeter user. The feed is highly customizable and can be displayed anywhere on your site in a **List** or **Slider** format, using either shortcode or widget. 
+**Ray Social Feeds For Twitter** lets you display Twitter feeds beautifully on your website. You can display your own mentions timeline or tweets from any Twitter user. The feed is highly customizable and can be displayed anywhere on your site in a **List** or **Slider** format, using either shortcode or widget. 
 
 You can **define defaults** on your Settings page. And can override those settings by specifying custom attributes in your shortcodes. Every widget & shortcode can also have its own unique settings.
 
@@ -78,7 +78,7 @@ You can opt for our [Pro Version](https://www.raycreations.net/ray-social-feeds-
 *   Display images & videos in your feed.
 *   Display your tweets in Masonry & 2-Column Slider format.
 *   Choose the number of tweets in a row for the Masonry format.
-*   Display Hashtags timeline, Searach timeline, along with User timeline, and Mentions timeline.
+*   Display Hashtags timeline, Search timeline, along with User timeline, and Mentions timeline.
 *   Remove links from Hashtags for a cleaner look.
 *   Remove links from Mentions.
 *   Remove linking from external links.
@@ -169,11 +169,20 @@ We want to provide the best possible user experience for our plugin users. We wo
 
 == Upgrade Notice ==
 
-= 1.2.2 =
-* Fixed minor issues with admin widget screen.
+= 1.2.3 =
+* Shortcode/s tweets cache is automatically deleted and rebuilt when the page it is on is saved/updated.
+* So any changes made to the shortcode attributes are immediately reflected in the Twitter feed.
+* Also optimized code for tweets cache management.
 
 
 == Changelog ==
+
+= 1.2.3 =
+* Changed plugin prefix from "rc_myctf_" to "rsfft_".
+* Changed all file name prefixes from "rc-myctf" to "rsfft", including stylesheets & js file names.
+* Shortcode/s tweets cache is automatically deleted and rebuilt when the page it is on is saved/updated.
+* So any changes made to the shortcode attributes are immediately reflected in the Twitter feed.
+* Optimized code for tweets cache management.
 
 = 1.2.2 =
 * Fixed minor issues with admin widget screen.

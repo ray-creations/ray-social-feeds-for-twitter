@@ -17,7 +17,7 @@ if ( !defined( 'ABSPATH' ) ){
 }
 
 
-class Rc_Myctf_Tweets {
+class Rsfft_Tweets {
     
     
     /*
@@ -40,7 +40,7 @@ class Rc_Myctf_Tweets {
      * @param $atts     array   Attributes sent as part of the shortcode
      * @return $tweets  object  Returns tweets as object
      */
-    public static function rc_myctf_fetch_tweets( $atts ) {
+    public static function rsfft_fetch_tweets( $atts ) {
         
         /* 
          * check to see if Tweets are stored in the Transient 
@@ -48,20 +48,20 @@ class Rc_Myctf_Tweets {
          */
         
         $id = !empty( $atts[ 'id' ] ) ? wp_strip_all_tags( $atts[ 'id' ] ) : '';
-        $rc_myctf_cache = new Rc_Myctf_Cache();
+        $rsfft_cache = new Rsfft_Cache();
         
-        if ( false === ( $rc_myctf_cache->rc_myctf_get_cache( $id ) ) ) {
+        if ( false === ( $rsfft_cache->rsfft_get_cache( $id ) ) ) {
             
             /* 
              * Fetch fresh Tweets as stored tweets have expired for this shortcode id
              */
             
-            $raw_tweets = Rc_Myctf_Tweets::rc_myctf_fetch_live_tweets();
+            $raw_tweets = Rsfft_Tweets::rsfft_fetch_live_tweets();
             
         } else {
             
             /* Retrieve the stored tweets or "false" if error */
-            $raw_tweets = $rc_myctf_cache->rc_myctf_get_cache( $id );
+            $raw_tweets = $rsfft_cache->rsfft_get_cache( $id );
 
         }
 
@@ -69,7 +69,7 @@ class Rc_Myctf_Tweets {
          * Check if $raw_tweets === false, then return false
          * Or check whether $raw_tweets is an object of WP Error class
          */
-        if ( $raw_tweets === FALSE || is_wp_error( $raw_tweets ) || Rc_Myctf_Tweets::rc_myctf_tweets_contain_error_message( $raw_tweets ) ) {
+        if ( $raw_tweets === FALSE || is_wp_error( $raw_tweets ) || Rsfft_Tweets::rsfft_tweets_contain_error_message( $raw_tweets ) ) {
             return FALSE;
         }
         
@@ -80,8 +80,8 @@ class Rc_Myctf_Tweets {
          * object "statuses"
          */
         
-        //$merged_atts_options = Rc_Myctf::rc_myctf_fetch_merged_atts_options( $atts );
-        $merged_atts_options = Rc_Myctf::$merged_scode_atts;
+        //$merged_atts_options = Rsfft::rsfft_fetch_merged_atts_options( $atts );
+        $merged_atts_options = Rsfft::$merged_scode_atts;
         $feed_type = wp_strip_all_tags( $merged_atts_options[ 'feed_type' ] );
         
         if ( $feed_type == 'hashtags_timeline' || $feed_type == 'search_timeline' ) {
@@ -93,7 +93,7 @@ class Rc_Myctf_Tweets {
         
         return $tweets;
         
-    } //ends rc_myctf_fetch_tweets
+    } //ends rsfft_fetch_tweets
     
     
     
@@ -107,9 +107,9 @@ class Rc_Myctf_Tweets {
      * @param $atts array   Attributes as set in the shortcode by user
      * @return $tweets  object  List of tweets fetched from Twitter
      */
-    public static function rc_myctf_fetch_live_tweets() {
+    public static function rsfft_fetch_live_tweets() {
         
-        $atts = Rc_Myctf::$scode_atts;
+        $atts = Rsfft::$scode_atts;
         $id = !empty( $atts[ 'id' ] ) ? strip_tags( $atts[ 'id' ] ) : '';
         
         /* if there is no "id" associated with a shortcode, return "false" */
@@ -117,7 +117,7 @@ class Rc_Myctf_Tweets {
             return FALSE;
         }
         
-        $settings_option = get_option( 'rc_myctf_settings_options' );
+        $settings_option = get_option( 'rsfft_settings_options' );
         $oauth_access_token = isset( $settings_option[ 'access_token' ] ) ? sanitize_text_field( $settings_option[ 'access_token' ] ) : '';
         $oauth_access_token_secret = isset( $settings_option[ 'access_token_secret' ] ) ? sanitize_text_field( $settings_option[ 'access_token_secret' ] ) : '';
         $consumer_key = isset( $settings_option[ 'app_consumer_key' ] ) ? sanitize_text_field( $settings_option[ 'app_consumer_key' ] ) : '';
@@ -131,7 +131,7 @@ class Rc_Myctf_Tweets {
         );
         
         /* This function constructs and retuns the appropriate GET fields to query Twiiter */
-        $get_fields_string = strip_tags( Rc_Myctf_Tweets::rc_myctf_construct_get_fields_string() );
+        $get_fields_string = strip_tags( Rsfft_Tweets::rsfft_construct_get_fields_string() );
         
         //echo 'get_field_string value: ' . $get_fields_string . '<br>';
         //wp_die();
@@ -139,16 +139,16 @@ class Rc_Myctf_Tweets {
         $request_method = 'GET';
         
         /* get feed_type */
-        $feed_type = strip_tags( Rc_Myctf::$merged_scode_atts[ 'feed_type' ] );
+        $feed_type = strip_tags( Rsfft::$merged_scode_atts[ 'feed_type' ] );
         
         
-        include_once( RC_MYCTF_DIR . 'inc/class.rc-myctf-twitter-connect.php' );
-        $twitter_instance = new Rc_Myctf_Twitter_Connect( $settings );
+        include_once( RSFFT_DIR . 'inc/class.rsfft-twitter-connect.php' );
+        $twitter_instance = new Rsfft_Twitter_Connect( $settings );
         
         $response = $twitter_instance
-                ->rc_myctf_set_get_field( $get_fields_string )
-                ->rc_myctf_build_oauth( $feed_type, $request_method )
-                ->rc_myctf_process_request();
+                ->rsfft_set_get_field( $get_fields_string )
+                ->rsfft_build_oauth( $feed_type, $request_method )
+                ->rsfft_process_request();
         
         
         if ( $response === FALSE || is_wp_error( $response ) ) {
@@ -163,12 +163,12 @@ class Rc_Myctf_Tweets {
          * Also, check that $tweets itself does not contain error message from Twitter
          * if not, then save it to transient (cache)
          */
-        if ( $tweets === FALSE || is_wp_error( $tweets ) || Rc_Myctf_Tweets::rc_myctf_tweets_contain_error_message( $tweets ) ) {
+        if ( $tweets === FALSE || is_wp_error( $tweets ) || Rsfft_Tweets::rsfft_tweets_contain_error_message( $tweets ) ) {
             return FALSE;
         } else {
             
-            $rc_myctf_cache = new Rc_Myctf_Cache();
-            $status = $rc_myctf_cache->rc_myctf_set_cache( $id, $tweets );
+            $rsfft_cache = new Rsfft_Cache();
+            $status = $rsfft_cache->rsfft_set_cache( $id, $tweets );
             
             /* if $status is false, meaning cache could not be set. Send error.  */
             if ( $status === FALSE ) {
@@ -180,25 +180,25 @@ class Rc_Myctf_Tweets {
         return $tweets;
         
         
-    }//ends rc_myctf_fetch_live_tweets_from_twitter
+    }//ends rsfft_fetch_live_tweets_from_twitter
 
     
     
     
     /*
      * Constructs a string of the GET fields that will be sent to the 
-     * class.rc-myctf-twitter-connect.php class.
+     * class.rsfft-twitter-connect.php class.
      * 
      * @since 1.2
      * @access public
      * 
      * @return string   A string of the GET fields
      */
-    public static function rc_myctf_construct_get_fields_string() {
+    public static function rsfft_construct_get_fields_string() {
         
         /* merged attributes and option values */
-        //$merged_atts_options = Rc_Myctf::rc_myctf_fetch_merged_atts_options( $atts );
-        $merged_atts_options = Rc_Myctf::$merged_scode_atts;
+        //$merged_atts_options = Rsfft::rsfft_fetch_merged_atts_options( $atts );
+        $merged_atts_options = Rsfft::$merged_scode_atts;
         
         /* If there was an error, return false */
         if ( $merged_atts_options == FALSE ) {
@@ -229,7 +229,7 @@ class Rc_Myctf_Tweets {
         /* if feed_type is 'user_timeline' */
         if ( $feed_type == 'user_timeline' ) {
             
-            /* prefix a question mark (?) to the $get_fields string, as required by the Rc_Myctf_Twitter_Connect class  */
+            /* prefix a question mark (?) to the $get_fields string, as required by the Rsfft_Twitter_Connect class  */
             $get_fields = '?';
             
             $get_fields .= 'screen_name=' . rawurlencode( $screen_name );
@@ -241,7 +241,7 @@ class Rc_Myctf_Tweets {
             
         } else if ( $feed_type == 'mentions_timeline' ) {
             
-            /* prefix a question mark (?) to the $get_fields string, as required by the Rc_Myctf_Twitter_Connect class  */
+            /* prefix a question mark (?) to the $get_fields string, as required by the Rsfft_Twitter_Connect class  */
             $get_fields = '?';
             
             $get_fields .= 'count=' . $count;
@@ -250,13 +250,13 @@ class Rc_Myctf_Tweets {
             
         } else if ( $feed_type == 'hashtags_timeline' || $feed_type == 'search_timeline' ) {
             
-            /* prefix a question mark (?) to the $get_fields string, as required by the Rc_Myctf_Twitter_Connect class  */
+            /* prefix a question mark (?) to the $get_fields string, as required by the Rsfft_Twitter_Connect class  */
             $get_fields = '?';
             
             if ( $feed_type == 'hashtags_timeline' ) {
                 
                 /* Function to return a formatted string of Hashtags to be used in Twitter URL */
-                $hashtags = Rc_Myctf_Tweets::rc_myctf_get_hashtags_formatted_for_twitter_url( $hashtags_str );
+                $hashtags = Rsfft_Tweets::rsfft_get_hashtags_formatted_for_twitter_url( $hashtags_str );
                 
                 $get_fields .= 'q=' . rawurlencode( $hashtags );
                    
@@ -299,7 +299,7 @@ class Rc_Myctf_Tweets {
         return $get_fields;
         
         
-    }//ends rc_myctf_construct_get_fields_string
+    }//ends rsfft_construct_get_fields_string
 
 
 
@@ -312,7 +312,7 @@ class Rc_Myctf_Tweets {
      * @param $hashtags_str string  List of hashtags in string format
      * @return $hashtags    string  String formatted for Twitter URL
      */
-    public static function rc_myctf_get_hashtags_formatted_for_twitter_url( $hashtags_str ) {
+    public static function rsfft_get_hashtags_formatted_for_twitter_url( $hashtags_str ) {
         
         /* Strip all characters except alphabets, digits, and whitespaces  */
         $hashtags_stripped = preg_replace( '/[^a-zA-Z0-9\s]/', '', $hashtags_str );
@@ -353,13 +353,13 @@ class Rc_Myctf_Tweets {
      * @param object    @tweets object  Tweet object
      * @return boolean    True | False  Returns either true or false
      */
-    public static function rc_myctf_tweets_contain_error_message( $tweets ) {
+    public static function rsfft_tweets_contain_error_message( $tweets ) {
         if ( isset( $tweets->errors ) ) {
             return TRUE;
         } else {
             return FALSE;
         }
-    }//ends rc_myctf_ensure_tweets_do_not_contain_error_message
+    }//ends rsfft_ensure_tweets_do_not_contain_error_message
     
     
 }//ends class

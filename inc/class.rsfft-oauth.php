@@ -14,7 +14,7 @@ if ( !defined( 'ABSPATH' ) ){
 }
 
 
-class Rc_Myctf_OAuth {
+class Rsfft_OAuth {
 
     /**
      * Indicates whether the class has been initialized or not.
@@ -59,13 +59,13 @@ class Rc_Myctf_OAuth {
      * 
      * @return array    $data||False   Array holding the api keys
      */
-    public static function rc_myctf_fetch_3_legged_oauth_url_from_ray_creations_api() {
+    public static function rsfft_fetch_3_legged_oauth_url_from_ray_creations_api() {
         
         /* prepare data to be sent along with the request */
         $request_type = 'oauth';
         $admin_email = get_option( 'admin_email' );
         //$return_url = admin_url( 'options-general.php?page=myctf-page' );
-        $return_url = RC_MYCTF_ADMIN_URL;
+        $return_url = RSFFT_ADMIN_URL;
         $oauth_token = '';
         
         
@@ -87,7 +87,7 @@ class Rc_Myctf_OAuth {
         
         
         /* Sending the values & retrieving the response object from Twitter */
-        $response = wp_remote_post( RC_MYCTF_OAUTH_URL, $args );
+        $response = wp_remote_post( RSFFT_OAUTH_URL, $args );
         //$response = wp_remote_post( 'https://api.raycreations.net/wp-json/ray-api/v1/twitter-oauth', $args );
         
         
@@ -143,7 +143,7 @@ class Rc_Myctf_OAuth {
             }
             
         }
-    }// rc_myctf_fetch_3_legged_oauth_url_from_ray_creations_api
+    }// rsfft_fetch_3_legged_oauth_url_from_ray_creations_api
     
     
     
@@ -155,7 +155,7 @@ class Rc_Myctf_OAuth {
      * 
      * @return array    $data||False   Array holding the api keys
      */
-    public static function rc_myctf_fetch_saved_tokens_from_ray_creations_api() {
+    public static function rsfft_fetch_saved_tokens_from_ray_creations_api() {
         
         /* prepare data to be sent along with the request */
         $request_type = 'access_token';
@@ -180,7 +180,7 @@ class Rc_Myctf_OAuth {
         //add_filter( 'https_ssl_verify', '__return_false' );
         
         /* Sending the values & retrieving the response object from Twitter */
-        $response = wp_remote_post( RC_MYCTF_OAUTH_URL, $args );
+        $response = wp_remote_post( RSFFT_OAUTH_URL, $args );
         //$response = wp_remote_post( 'https://api.raycreations.net/wp-json/ray-api/v1/twitter-oauth', $args );
         
         //print_r($response);
@@ -226,8 +226,8 @@ class Rc_Myctf_OAuth {
             $res_access_token = sanitize_text_field( $params->access_token );
             $res_access_secret = sanitize_text_field( $params->access_secret );
             
-            /* retrieve saved options 'rc_myctf_settings_options' and update the above values */
-            $options = get_option( 'rc_myctf_settings_options' );
+            /* retrieve saved options 'rsfft_settings_options' and update the above values */
+            $options = get_option( 'rsfft_settings_options' );
             
             
             
@@ -245,14 +245,14 @@ class Rc_Myctf_OAuth {
                  *  now save the retrieved options
                  *  if values don't change, then update command does not execute
                  */
-                update_option( 'rc_myctf_settings_options', $options );
+                update_option( 'rsfft_settings_options', $options );
             }
             
             /* we will return true because all code have executed successfully */
             return TRUE; 
             
         }
-    }// rc_myctf_fetch_saved_tokens_from_ray_creations_api
+    }// rsfft_fetch_saved_tokens_from_ray_creations_api
     
     
 }//end class

@@ -18,19 +18,19 @@ if ( !defined( 'ABSPATH' ) ){
 
 
 /* Outer opening 2 div wraps for tweets (outer & container wraps)  */
-$html = Rc_Myctf::rc_myctf_get_tweet_opening_div_wraps_html( $display_style );
+$html = Rsfft::rsfft_get_tweet_opening_div_wraps_html( $display_style );
 
 foreach( $tweets as $i => $tweet ){
 
-    $text = Rc_Myctf::rc_myctf_get_displayable_tweet( $tweet );             //displayable tweet
-    $media_html = Rc_Myctf::rc_myctf_get_media_display_html( $tweet );      //media for tweets
-    $tweet_header = Rc_Myctf::rc_myctf_get_tweet_header( $tweet );        //formatted tweet header part
-    $tweet_footer = Rc_Myctf::rc_myctf_get_tweet_footer($tweet);          //formatted tweet footer part
+    $text = Rsfft::rsfft_get_displayable_tweet( $tweet );             //displayable tweet
+    $media_html = Rsfft::rsfft_get_media_display_html( $tweet );      //media for tweets
+    $tweet_header = Rsfft::rsfft_get_tweet_header( $tweet );        //formatted tweet header part
+    $tweet_footer = Rsfft::rsfft_get_tweet_footer($tweet);          //formatted tweet footer part
     
-    $display_tweet_border = Rc_Myctf::$merged_scode_atts[ 'display_tweet_border' ];
-    $border_type = Rc_Myctf::$merged_scode_atts[ 'border_type' ];
-    $display_header = Rc_Myctf::$merged_scode_atts[ 'display_header' ];
-    $display_footer = Rc_Myctf::$merged_scode_atts[ 'display_footer' ];
+    $display_tweet_border = Rsfft::$merged_scode_atts[ 'display_tweet_border' ];
+    $border_type = Rsfft::$merged_scode_atts[ 'border_type' ];
+    $display_header = Rsfft::$merged_scode_atts[ 'display_header' ];
+    $display_footer = Rsfft::$merged_scode_atts[ 'display_footer' ];
     
     //controls the display of border and border_type
     $tweet_border_css = '';
@@ -49,7 +49,7 @@ foreach( $tweets as $i => $tweet ){
         /* Wraps both the header and tweet */
         $html .= "<div class='tweet_wrapper'>";
             if ( $display_header ) { $html .= $tweet_header; }                  //Display header
-            require( RC_MYCTF_DIR . 'views/tweet-with-extn-link.php' );         //Display the actual tweet
+            require( RSFFT_DIR . 'views/tweet-with-extn-link.php' );         //Display the actual tweet
         $html .= "</div>"; //ends tweet_wrapper
 
         

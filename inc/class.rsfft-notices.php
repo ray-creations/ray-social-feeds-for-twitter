@@ -16,7 +16,7 @@ if ( !defined( 'ABSPATH' ) ){
 }
 
 
-class Rc_Myctf_Notices {
+class Rsfft_Notices {
     
     /**
      * Indicates whether the class has been initialized or not.
@@ -58,7 +58,7 @@ class Rc_Myctf_Notices {
      * @since 1.0
      * @access public
      */
-    public static function rc_myctf_admin_notice__success() {
+    public static function rsfft_admin_notice__success() {
         ?>
         <div class="notice notice-success is-dismissible">
             <p><?php _e( 'Done!', 'my-custom-twitter-feed' ); ?></p>
@@ -72,11 +72,11 @@ class Rc_Myctf_Notices {
      * @since 1.0
      * @access public
      */
-    public static function rc_myctf_admin_notice__error() {
+    public static function rsfft_admin_notice__error() {
         $class = 'notice notice-error';
 	$message_str = __( 'Oops! An error has occurred.', 'my-custom-twitter-feed' );
         
-        $options = get_option( 'rc_myctf_settings_options' );
+        $options = get_option( 'rsfft_settings_options' );
         $message = isset( $options[ 'error_message' ] ) ? sanitize_text_field( $options[ 'error_message' ] ) : $message_str;
 
 	printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) ); 
@@ -84,7 +84,7 @@ class Rc_Myctf_Notices {
     }
     
     
-    public static function rc_myctf_admin_notice__no_keys() {
+    public static function rsfft_admin_notice__no_keys() {
         
          ?>
         <div class="notice notice-info">

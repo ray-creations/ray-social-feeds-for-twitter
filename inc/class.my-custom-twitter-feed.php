@@ -14,7 +14,7 @@ if ( !defined( 'ABSPATH' ) ){
 }
 
 
-class Rc_Myctf {
+class Rsfft {
     
     /**
      * Indicates whether the class has been initialized or not.
@@ -92,13 +92,13 @@ class Rc_Myctf {
         self::$initiated = true;
         
         /* Add Shortcode for Tweets */
-        add_shortcode( 'my_custom_tweets', array( 'Rc_Myctf', 'rc_myctf_render_shortcode' ) );
+        add_shortcode( 'my_custom_tweets', array( 'Rsfft', 'rsfft_render_shortcode' ) );
         
         /* Check to see if shortcode exists for this page or post */
-        add_filter( 'the_content', array( 'Rc_Myctf', 'rc_myctf_add_unique_ids_to_shortcodes' ) );
+        add_filter( 'the_content', array( 'Rsfft', 'rsfft_add_unique_ids_to_shortcodes' ) );
         
         /* Localize the options needed during initialization of the owl slider & carousel */
-        add_action( 'wp_footer', array( 'Rc_Myctf', 'rc_myctf_owl_slides_carousel_localize_script' ) );
+        add_action( 'wp_footer', array( 'Rsfft', 'rsfft_owl_slides_carousel_localize_script' ) );
         
         
     } 
@@ -113,54 +113,52 @@ class Rc_Myctf {
      * @param array     $atts   Attributes added to shortcode by user
      * @return string
      */
-    public static function rc_myctf_render_shortcode( $atts ){
+    public static function rsfft_render_shortcode( $atts ){
         
         /* Before any action takes place we need to check if api keys are added. Else display appropriate message  */
-        if ( ( $key_status = Rc_Myctf::rc_myctf_check_api_keys() ) === FALSE ) {
-            $error_html = Rc_Myctf::rc_myctf_get_tweets_error_html( $error_type = 'keys' );
+        if ( ( $key_status = Rsfft::rsfft_check_api_keys() ) === FALSE ) {
+            $error_html = Rsfft::rsfft_get_tweets_error_html( $error_type = 'keys' );
             return $error_html;
         }
         
-        Rc_Myctf::$scode_atts = $atts;                                                          //save $atts
-        Rc_Myctf::$merged_scode_atts = Rc_Myctf::rc_myctf_fetch_merged_atts_options( $atts );   //merged options
-        Rc_Myctf::rc_myctf_reset_settings_reserved_for_pro();                                   //resets options reserved for pro in shortcode
-        $display_style = Rc_Myctf::$merged_scode_atts[ 'display_style' ];                       //display_style for this shortcode
-        //$display_style = 'display_slider_1_col';                                              //hard coding it for the free version
+        Rsfft::$scode_atts = $atts;                                                          //save $atts
+        Rsfft::$merged_scode_atts = Rsfft::rsfft_fetch_merged_atts_options( $atts );   //merged options
+        Rsfft::rsfft_reset_settings_reserved_for_pro();                                   //resets options reserved for pro in shortcode
+        $display_style = Rsfft::$merged_scode_atts[ 'display_style' ];                       //display_style for this shortcode
         
+        //print_r( Rsfft::$merged_scode_atts );
+        //wp_die();
         
         /*
-         * If $id is not empty, then add it to the 
-         * 'rc_myctf_scodes_transients' options
-         * and add the transient_name as its value
+         * add/update the $shortcode_id and its corresponding $transient_name 
+         * to the option 'rsfft_scodes_transients' options as key => value pair
          */
-        $id = ( isset( $atts['id'] ) ) ? strip_tags( $atts['id'] ) : '';              //unique id of the shortcode
-        if ( !empty( $id ) ) {
-            $rc_myctf_cache = new Rc_Myctf_Cache();
-            $rc_myctf_cache->rc_myctf_add_update_transient_name_to_options( $id );
-        }
+        $scode_id = strip_tags( $atts['id'] );
+        $rsfft_cache = new Rsfft_Cache();
+        $rsfft_cache->rsfft_add_update_transient_name_to_options( $scode_id );
         
         /* Fetch Tweets */
-        $tweets = Rc_Myctf_Tweets::rc_myctf_fetch_tweets( $atts );
+        $tweets = Rsfft_Tweets::rsfft_fetch_tweets( $atts );
         
         /* If error fetching tweets, display the error html box instead of the tweets */
         if ( $tweets === false ) {
-            $error_html_box = Rc_Myctf::rc_myctf_get_tweets_error_html( $error_type = 'tweets' );
+            $error_html_box = Rsfft::rsfft_get_tweets_error_html( $error_type = 'tweets' );
             return $error_html_box;
         }
         
         /* if display_style is slider */
         if ( ($display_style == 'display_slider_1_col' || $display_style == 'display_slider_2_col') ) {
-            require( RC_MYCTF_DIR . 'views/display-style/slider.php' );
+            require( RSFFT_DIR . 'views/display-style/slider.php' );
         }
         
         /* if display_style is either list or masonry  */
         if ( ($display_style == 'display_list' || $display_style == 'display_masonry' ) ) {
-            require( RC_MYCTF_DIR . 'views/display-style/list-masonry.php' );
+            require( RSFFT_DIR . 'views/display-style/list-masonry.php' );
         }
         
         return $html;
         
-    }// Ends Shortcode rc_myctf_render_shortcode
+    }// Ends Shortcode rsfft_render_shortcode
     
     
     
@@ -174,15 +172,15 @@ class Rc_Myctf {
      * @param $text     string  The Tweet in text format.
      * @return $text    string  Returns the tweet in text format after adding links
      */
-    public static function rc_myctf_add_links_to_tweet_entities( $tweet, $text ) {
+    public static function rsfft_add_links_to_tweet_entities( $tweet, $text ) {
         
         /* Make sure the external links array is always empty when the loop starts for each tweet */
-        Rc_Myctf::$external_url = array();
+        Rsfft::$external_url = array();
         //$external_url = array();
         
         //check if links needs to be removed from mentions & hashtags
-         $remove_links_hashtags = Rc_Myctf::$merged_scode_atts[ 'remove_links_hashtags' ];
-        $remove_links_mentions = Rc_Myctf::$merged_scode_atts[ 'remove_links_mentions' ];
+         $remove_links_hashtags = Rsfft::$merged_scode_atts[ 'remove_links_hashtags' ];
+        $remove_links_mentions = Rsfft::$merged_scode_atts[ 'remove_links_mentions' ];
         
         
         foreach( $tweet->{ 'entities' } as $type => $entity ){
@@ -192,7 +190,7 @@ class Rc_Myctf {
                     $text = str_replace( $url->{ 'url' }, $update_with, $text );
 
                     /* Store the URLs in an array */
-                    Rc_Myctf::$external_url[] = $url->{ 'expanded_url' };
+                    Rsfft::$external_url[] = $url->{ 'expanded_url' };
                     //$external_url[] = $url->{ 'expanded_url' };
 
                 } 
@@ -211,7 +209,7 @@ class Rc_Myctf {
         
         return $text;
         
-    } //ends rc_myctf_add_links_to_tweet_entities
+    } //ends rsfft_add_links_to_tweet_entities
     
     
     
@@ -226,13 +224,13 @@ class Rc_Myctf {
      * @access public
      * @return string
      */
-    public static function rc_myctf_get_media_display_html( $tweet ){
+    public static function rsfft_get_media_display_html( $tweet ){
               
         /* 
          * check whether user has opted to hide media or not
          * if TRUE, then simply return
          */
-        $hide_media = Rc_Myctf::$merged_scode_atts[ 'hide_media' ];
+        $hide_media = Rsfft::$merged_scode_atts[ 'hide_media' ];
         
         if ( $hide_media == TRUE ) {
             return FALSE;
@@ -282,9 +280,9 @@ class Rc_Myctf {
             }
             
         /* If native photos & videos don't exist. Check for external urls for title, desc, og:image or 'largest image' */
-        } else if ( !empty ( Rc_Myctf::$external_url[0] ) ) {
+        } else if ( !empty ( Rsfft::$external_url[0] ) ) {
             
-            $external_url_image_html = Rc_Myctf::rc_myctf_fetch_external_url_details();
+            $external_url_image_html = Rsfft::rsfft_fetch_external_url_details();
             
             //if ( FALSE === $external_url_image_html ) {
                 //return FALSE;
@@ -304,7 +302,7 @@ class Rc_Myctf {
         }
         
         
-    }//ends rc_myctf_get_media_display_html
+    }//ends rsfft_get_media_display_html
     
     
     
@@ -321,7 +319,7 @@ class Rc_Myctf {
      * @access public
      * @return string
      */
-    public static function rc_myctf_remove_url_in_tweet_sent_as_text( $text_with_url ){
+    public static function rsfft_remove_url_in_tweet_sent_as_text( $text_with_url ){
         
         /* 
         * Filter out URL like (https://t.co/D4GwXqZTMF) in Tweet text 
@@ -344,9 +342,9 @@ class Rc_Myctf {
      * @access public
      * @return string
      */
-    public static function rc_myctf_fetch_external_url_details() {
+    public static function rsfft_fetch_external_url_details() {
         
-        $external_url = esc_url( Rc_Myctf::$external_url[0] );
+        $external_url = esc_url( Rsfft::$external_url[0] );
         $img_status = FALSE;
         
         /* Declare $html variable */
@@ -358,8 +356,8 @@ class Rc_Myctf {
         /* check to see if $websiteDetails array is stored in the Transient */
         if ( false === ( $websiteDetails = get_transient( $external_url ) ) ) {
 
-            /* Instantiate the Rc_Myctf_Url_Preview with data as $obj1 */
-            $obj1 = new Rc_Myctf_Url_Preview( $external_url );
+            /* Instantiate the Rsfft_Url_Preview with data as $obj1 */
+            $obj1 = new Rsfft_Url_Preview( $external_url );
             
             /* if $obj1 === false, return false */
             if ( $obj1 === FALSE ) {
@@ -399,7 +397,7 @@ class Rc_Myctf {
              * Title & Description should only be fetched if the external Url is
              * not Twitter or Instagram.
              */
-            if ( Rc_Myctf::rc_myctf_check_if_title_desc_should_be_fetched( $external_url ) === TRUE ) {
+            if ( Rsfft::rsfft_check_if_title_desc_should_be_fetched( $external_url ) === TRUE ) {
                 
                 $html .= '<div class="ext_link_title_desc">';
                 $html .= '<span class="ext_link_title">' . esc_attr( $websiteDetails[ "Title" ] ) . '</span>';
@@ -436,7 +434,7 @@ class Rc_Myctf {
             return FALSE;
         }
         
-    }//Ends function rc_myctf_fetch_external_url_details
+    }//Ends function rsfft_fetch_external_url_details
     
     
     
@@ -449,14 +447,14 @@ class Rc_Myctf {
      * @param $user     object  Twitter user object
      * @return string
      */
-    public static function rc_myctf_get_tweet_header( $tweet ){
+    public static function rsfft_get_tweet_header( $tweet ){
         
         /* get the options */
-        $display_style = Rc_Myctf::$merged_scode_atts[ 'display_style' ];
-        $display_profile_img_header = Rc_Myctf::$merged_scode_atts[ 'display_profile_img_header' ];
-        $display_name_header = Rc_Myctf::$merged_scode_atts[ 'display_name_header' ];
-        $display_screen_name_header = Rc_Myctf::$merged_scode_atts[ 'display_screen_name_header' ];
-        $display_date_header = Rc_Myctf::$merged_scode_atts[ 'display_date_header' ];
+        $display_style = Rsfft::$merged_scode_atts[ 'display_style' ];
+        $display_profile_img_header = Rsfft::$merged_scode_atts[ 'display_profile_img_header' ];
+        $display_name_header = Rsfft::$merged_scode_atts[ 'display_name_header' ];
+        $display_screen_name_header = Rsfft::$merged_scode_atts[ 'display_screen_name_header' ];
+        $display_date_header = Rsfft::$merged_scode_atts[ 'display_date_header' ];
         
         /* $user is assigned the Twitter User object */
         $user = $tweet->{ 'user' };
@@ -502,7 +500,7 @@ class Rc_Myctf {
             
             /* display date */
             if ( $display_date_header ) {
-                $html .= "<span class='tweet_date'><a href='https://twitter.com/" . esc_attr( $user->{ 'screen_name' } ) . "/status/" . esc_attr( $tweet->id_str ) . "' target='_blank' rel='noopener'>" . esc_attr( Rc_Myctf::rc_myctf_format_date( $tweet->{ 'created_at' } ) ) . "</a></span>";
+                $html .= "<span class='tweet_date'><a href='https://twitter.com/" . esc_attr( $user->{ 'screen_name' } ) . "/status/" . esc_attr( $tweet->id_str ) . "' target='_blank' rel='noopener'>" . esc_attr( Rsfft::rsfft_format_date( $tweet->{ 'created_at' } ) ) . "</a></span>";
             }
             
         $html .= "</div>";
@@ -520,13 +518,13 @@ class Rc_Myctf {
      * @param $tweet     object  Twitter user object
      * @return string
      */
-    public static function rc_myctf_get_tweet_footer( $tweet ){
+    public static function rsfft_get_tweet_footer( $tweet ){
         
         /* get the options */
-        $display_likes_footer = Rc_Myctf::$merged_scode_atts[ 'display_likes_footer' ];
-        $display_retweets_footer = Rc_Myctf::$merged_scode_atts[ 'display_retweets_footer' ];
-        $display_screen_name_footer = Rc_Myctf::$merged_scode_atts[ 'display_screen_name_footer' ];
-        $display_date_footer = Rc_Myctf::$merged_scode_atts[ 'display_date_footer' ];
+        $display_likes_footer = Rsfft::$merged_scode_atts[ 'display_likes_footer' ];
+        $display_retweets_footer = Rsfft::$merged_scode_atts[ 'display_retweets_footer' ];
+        $display_screen_name_footer = Rsfft::$merged_scode_atts[ 'display_screen_name_footer' ];
+        $display_date_footer = Rsfft::$merged_scode_atts[ 'display_date_footer' ];
         
         /* $user is assigned the Twitter User object */
         $user = $tweet->{ 'user' };
@@ -539,24 +537,24 @@ class Rc_Myctf {
         $html = '';
         
         /* opening div */
-        $html .= '<div class="rc_myctf_tweet_footer">';
+        $html .= '<div class="rsfft_tweet_footer">';
         
         /* displaying heart */
         if ( $display_likes_footer ) {
-            $heart_svg_img = '<svg viewBox="0 0 24 24" aria-label="Tweet favorite count" class="rc_myctf_twitter_heart"><g><path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z"></path></g></svg>';
-            $html .= '<span class="rc_myctf_like_wrap">';
+            $heart_svg_img = '<svg viewBox="0 0 24 24" aria-label="Tweet favorite count" class="rsfft_twitter_heart"><g><path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z"></path></g></svg>';
+            $html .= '<span class="rsfft_like_wrap">';
             $html .= '<span>' . $heart_svg_img . '</span>';
-            $html .= '<span class="rc_myctf_favorite_count">' . $favorite_count . '</span>';
+            $html .= '<span class="rsfft_favorite_count">' . $favorite_count . '</span>';
             $html .= '</span>';
         }
         
         
         /* displaying retweet & count */
         if ( $display_retweets_footer ) {
-            $retweet_svg_img = '<svg viewBox="0 0 24 24" aria-label="Retweet count" class="rc_myctf_retweet_sign"><g><path d="M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z"></path></g></svg>';
-            $html .= '<span class="rc_myctf_retweet_wrap">';
+            $retweet_svg_img = '<svg viewBox="0 0 24 24" aria-label="Retweet count" class="rsfft_retweet_sign"><g><path d="M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z"></path></g></svg>';
+            $html .= '<span class="rsfft_retweet_wrap">';
             $html .= '<span>' . $retweet_svg_img . '</span>';
-            $html .= '<span class="rc_myctf_retweet_count">' . $retweet_count . '</span>';
+            $html .= '<span class="rsfft_retweet_count">' . $retweet_count . '</span>';
             $html .= '</span>';
         }
         
@@ -568,7 +566,7 @@ class Rc_Myctf {
         
         /* displaying footer date */
         if ( $display_date_footer ) {
-            $html .= "<span class='tweet_date_footer'><a href='https://twitter.com/" . esc_attr( $user->{ 'screen_name' } ) . "/status/" . esc_attr( $tweet->id_str ) . "' target='_blank' rel='noopener'>" . esc_attr( Rc_Myctf::rc_myctf_format_date( $tweet->{ 'created_at' } ) ) . "</a></span>";
+            $html .= "<span class='tweet_date_footer'><a href='https://twitter.com/" . esc_attr( $user->{ 'screen_name' } ) . "/status/" . esc_attr( $tweet->id_str ) . "' target='_blank' rel='noopener'>" . esc_attr( Rsfft::rsfft_format_date( $tweet->{ 'created_at' } ) ) . "</a></span>";
         }
         
         /* closing footer div */
@@ -576,7 +574,7 @@ class Rc_Myctf {
 
         return $html;
         
-    }//ends rc_myctf_get_tweet_footer
+    }//ends rsfft_get_tweet_footer
     
     
     
@@ -588,7 +586,7 @@ class Rc_Myctf {
      * @param $date     string
      * @return DateTime object
      */
-    public static function rc_myctf_format_date( $time_stamp_utc ) {
+    public static function rsfft_format_date( $time_stamp_utc ) {
         
         $formatted_time = '';
         
@@ -654,7 +652,7 @@ class Rc_Myctf {
      * @param   $external_url   string  A URL string
      * @return  $fetch          Boolean True or False value
      */
-    public static function rc_myctf_check_if_url_should_be_fetched( $raw_external_url ) {
+    public static function rsfft_check_if_url_should_be_fetched( $raw_external_url ) {
         
         $external_url = esc_url( $raw_external_url );
         
@@ -686,7 +684,7 @@ class Rc_Myctf {
         
         return $should_url_be_fetched;
         
-    } //ends rc_myctf_check_if_url_should_be_fetched
+    } //ends rsfft_check_if_url_should_be_fetched
 
 
     
@@ -700,7 +698,7 @@ class Rc_Myctf {
      * @param   $external_url   string  A URL string
      * @return  $display        Boolean True or False value
      */
-    public static function rc_myctf_check_if_title_desc_should_be_fetched( $raw_external_url ) {
+    public static function rsfft_check_if_title_desc_should_be_fetched( $raw_external_url ) {
         
         /* sanitize the received url */
         $external_url = esc_url( $raw_external_url );
@@ -733,7 +731,7 @@ class Rc_Myctf {
             return TRUE;
         }
         
-    }//ends rc_myctf_check_if_title_desc_should_be_fetched
+    }//ends rsfft_check_if_title_desc_should_be_fetched
     
     
     /* Calculates the time in seconds to store the retrieved tweets in Transient
@@ -747,13 +745,13 @@ class Rc_Myctf {
      * @param   null
      * @return  $duration       integer value
      */
-    public static function rc_myctf_get_tweet_cache_duration() {
+    public static function rsfft_get_tweet_cache_duration() {
         
         /* set default value of $duration */
         $duration = FALSE;
         
         /* Retrieve customization options from options */
-        $options_customize = get_option( 'rc_myctf_customize_options' );
+        $options_customize = get_option( 'rsfft_customize_options' );
         $check_tweets_every = isset( $options_customize[ 'check_tweets_every' ] ) ? wp_strip_all_tags( $options_customize[ 'check_tweets_every' ] ) : '';
         $tweet_checking_interval = isset( $options_customize[ 'tweet_checking_interval' ] ) ? intval( $options_customize[ 'tweet_checking_interval' ] ) : '';
         
@@ -786,7 +784,7 @@ class Rc_Myctf {
         
         return $duration;
         
-    } //ends rc_myctf_get_tweet_cache_duration
+    } //ends rsfft_get_tweet_cache_duration
 
     
     
@@ -803,69 +801,57 @@ class Rc_Myctf {
      * @param   string  $content    Post content
      * @return  string  $content    Post content
      */
-    public static function rc_myctf_add_unique_ids_to_shortcodes( $content ) {
+    public static function rsfft_add_unique_ids_to_shortcodes( $content ) {
         
         global $post;
         $post_id = $post->ID;
-        
-        /* shortcode tag to search */
-        $tag = 'my_custom_tweets';
-        
+                
         if ( false === strpos( $content, '[' ) ) {
             return $content;
         }
         
-        if (shortcode_exists( $tag ) ) {
-            
-            preg_match_all( '/' . get_shortcode_regex() . '/', $content, $matches, PREG_SET_ORDER );
-            
-            if ( empty( $matches ) ) {
-                return $content;
-            }
-            
-            /* this will hold the instances of our original shortcode */
-            $my_org_shortcodes = array();
-            
-            foreach ( $matches as $shortcode ) {
-                if ( $tag === $shortcode[2] ) {
-                    
-                    /* we are retrieving only the shortcode part of the array */
-                    $my_org_shortcodes[] = $shortcode[0];
-                    
-                } 
-            } 
-            
-            $my_new_shortcodes = array();
-            $i = 1;
-            foreach ( $my_org_shortcodes as $my_org_shortcode ) {
-                
-                /* 
-                 * explode removes the last ']' string from the shortcode.
-                 * so it is like "[my_custom_tweets "
-                 */
-                $string = explode( ']', $my_org_shortcode );
-                //echo 'Value of exploded string: ' . $string[0] . '<br><br>';
-                $my_new_shortcodes[] = $string[0] . ' id="post_id_' . $post_id . '_' . $i . '"]';
-                
-                $i++;
-            }
-            
-            
-            /* Search in $content and replace with new shortcode corresponding value */
-            $j = 0;
-            foreach ( $my_org_shortcodes as $my_org_shortcode ) {
-                
-                $content = str_replace( $my_org_shortcode, $my_new_shortcodes[ $j ], $content );
-                $j++;
-            }
-            
+        if ( ! shortcode_exists( RSFFT_SCODE_STR ) ) {
             return $content;
         }
-               
+        
+        
+        //fetch the original shortcodes on page.
+        $rsfft_cache = new Rsfft_Cache;
+        $my_org_shortcodes = $rsfft_cache->rsfft_get_shortcodes_on_page( $content );
+        
+        //if no shortcodes returned, return back the original $content
+        if ($my_org_shortcodes === false) {
+            return $content;
+        }
+ 
+        $my_new_shortcodes = array();
+        $i = 1;
+        foreach ( $my_org_shortcodes as $my_org_shortcode ) {
+
+            /* 
+             * explode removes the last ']' string from the shortcode.
+             * so it is like '[my_custom_tweets feed_type="user_timeline '
+             */
+            $string = explode( ']', $my_org_shortcode );
+            //echo 'Value of exploded string: ' . $string[0] . '<br><br>';
+            $my_new_shortcodes[] = $string[0] . ' id="post_id_' . $post_id . '_' . $i . '"]';
+
+            $i++;
+        }
+
+
+        /* Search in $content and replace with new shortcode corresponding value */
+        $j = 0;
+        foreach ( $my_org_shortcodes as $my_org_shortcode ) {
+
+            $content = str_replace( $my_org_shortcode, $my_new_shortcodes[ $j ], $content );
+            $j++;
+        }
+
         return $content;
-        
-        
-    }//ends function rc_myctf_add_unique_ids_to_shortcodes
+
+   
+    }//ends function rsfft_add_unique_ids_to_shortcodes
 
 
     
@@ -883,22 +869,22 @@ class Rc_Myctf {
      * @param   array   $atts                   Shortcode attributes
      * @return  string  $merged_atts_options    Value of the option requested
      */
-    public static function rc_myctf_fetch_merged_atts_options( $atts ) {
+    public static function rsfft_fetch_merged_atts_options( $atts ) {
         
         /* Retrieve customization options from options */
-        $options_customize = get_option( 'rc_myctf_customize_options' );
+        $options_customize = get_option( 'rsfft_customize_options' );
         
         /* Retrieve Tweet header & footer options */
-        $options_tweets = get_option( 'rc_myctf_tweets_options' );
+        $options_tweets = get_option( 'rsfft_tweets_options' );
         
         /* Retrieve Style tab options */
-        $options_style = get_option( 'rc_myctf_style_options' );
+        $options_style = get_option( 'rsfft_style_options' );
         
         /* Retrieve Slider/Carousel options */
-        $options_slider = get_option( 'rc_myctf_slider_carousel_options' );
+        $options_slider = get_option( 'rsfft_slider_carousel_options' );
         
         if ( $options_customize === false ) {
-            add_option( 'rc_myctf_customize_options' );
+            add_option( 'rsfft_customize_options' );
         }
         
         $feed_type = isset( $options_customize[ 'feed_type' ] ) ? wp_strip_all_tags( $options_customize[ 'feed_type' ] ) : 'user_timeline';
@@ -948,9 +934,15 @@ class Rc_Myctf {
         $auto_height = isset( $options_slider[ 'auto_height' ] ) ? strip_tags( $options_slider[ 'auto_height' ] ) : 0;
         $items = isset( $options_slider[ 'items' ] ) ? sanitize_text_field( $options_slider[ 'items' ] ) : '3';
         
+        /*
+         * Get the current post id
+         * @since 1.2.3
+         */
+        $post_id = is_numeric( get_the_ID() ) ? sanitize_text_field( get_the_ID() ) : '';
         
         $merged_atts_options = shortcode_atts( array(
             'id' => '',
+            'post_id' => $post_id,
             'feed_type' => $feed_type,
             'screen_name' => $screen_name,
             'hashtags' => $hashtags,
@@ -994,7 +986,7 @@ class Rc_Myctf {
         
         return $merged_atts_options;
         
-    }//ends function rc_myctf_fetch_merged_atts_options
+    }//ends function rsfft_fetch_merged_atts_options
     
     
     
@@ -1010,45 +1002,45 @@ class Rc_Myctf {
      * @param   array   $atts                   Shortcode attributes
      * @return  string  $merged_atts_options    Value of the option requested
      */
-    public static function rc_myctf_reset_settings_reserved_for_pro() {
+    public static function rsfft_reset_settings_reserved_for_pro() {
         
         //check if $display_style is 'display_masonry' or 'display_slider_2_col' reset it to 'display_list'
-        $display_style = wp_strip_all_tags( Rc_Myctf::$merged_scode_atts[ 'display_style' ] );
+        $display_style = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'display_style' ] );
         if ( $display_style == 'display_masonry' || $display_style == 'display_slider_2_col' ) {
-            Rc_Myctf::$merged_scode_atts[ 'display_style' ] = 'display_list';
+            Rsfft::$merged_scode_atts[ 'display_style' ] = 'display_list';
         }
         
         //check if $feed_type is 'hashtags_timeline' or 'search_timeline' reset it to 'user_timeline'
-        $feed_type = wp_strip_all_tags( Rc_Myctf::$merged_scode_atts[ 'feed_type' ] );
+        $feed_type = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'feed_type' ] );
         if ( $feed_type == 'hashtags_timeline' || $feed_type == 'search_timeline' ) {
-            Rc_Myctf::$merged_scode_atts[ 'feed_type' ] = 'user_timeline';
+            Rsfft::$merged_scode_atts[ 'feed_type' ] = 'user_timeline';
         }
         
         //check if hide_media is set to false. If yes, set it back to true
-        $hide_media = wp_strip_all_tags( Rc_Myctf::$merged_scode_atts[ 'hide_media' ] );
+        $hide_media = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'hide_media' ] );
         if ( $hide_media == 0 ) {
-            Rc_Myctf::$merged_scode_atts[ 'hide_media' ] = 1;
+            Rsfft::$merged_scode_atts[ 'hide_media' ] = 1;
         }
         
         /**
          * Handles the Links section
          */
-        $remove_links_hashtags = wp_strip_all_tags( Rc_Myctf::$merged_scode_atts[ 'remove_links_hashtags' ] );
+        $remove_links_hashtags = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'remove_links_hashtags' ] );
         if ( $remove_links_hashtags == 1 ) {
-            Rc_Myctf::$merged_scode_atts[ 'remove_links_hashtags' ] = 0;
+            Rsfft::$merged_scode_atts[ 'remove_links_hashtags' ] = 0;
         }
         
-        $remove_links_mentions = wp_strip_all_tags( Rc_Myctf::$merged_scode_atts[ 'remove_links_mentions' ] );
+        $remove_links_mentions = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'remove_links_mentions' ] );
         if ( $remove_links_mentions == 1 ) {
-            Rc_Myctf::$merged_scode_atts[ 'remove_links_mentions' ] = 0;
+            Rsfft::$merged_scode_atts[ 'remove_links_mentions' ] = 0;
         }
         
-        $remove_ext_links = wp_strip_all_tags( Rc_Myctf::$merged_scode_atts[ 'remove_ext_links' ] );
+        $remove_ext_links = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'remove_ext_links' ] );
         if ( $remove_ext_links == 1 ) {
-            Rc_Myctf::$merged_scode_atts[ 'remove_ext_links' ] = 0;
+            Rsfft::$merged_scode_atts[ 'remove_ext_links' ] = 0;
         }
         
-    }//ends rc_myctf_reset_settings_reserved_for_pro
+    }//ends rsfft_reset_settings_reserved_for_pro
 
 
     /* 
@@ -1062,22 +1054,22 @@ class Rc_Myctf {
      * 
      * @return  string  $html       Error message html
      */
-    public static function rc_myctf_get_tweets_error_html( $error_type ) {
+    public static function rsfft_get_tweets_error_html( $error_type ) {
         
         $html = '';
         
         if ( $error_type == 'tweets' ) {
             
             /* HTML to show instead of the tweets */
-            $html .= '<div class="rc_myctf_tweets_wrap_error">';
+            $html .= '<div class="rsfft_tweets_wrap_error">';
             $html .= '<p>Oops! Something went wrong. Please try again after some time.</p>';
             $html .= '</div>';
             
         } elseif ( $error_type == 'keys' ) {
             
             /* HTML to show instead of the tweets */
-            $html .= '<div class="rc_myctf_tweets_wrap_error">';
-            $html .= '<p>Generate your access key & secret in the plugin <a href="' . RC_MYCTF_ADMIN_URL . '&tab=settings"> API Settings page</a> '
+            $html .= '<div class="rsfft_tweets_wrap_error">';
+            $html .= '<p>Generate your access key & secret in the plugin <a href="' . RSFFT_ADMIN_URL . '&tab=settings"> API Settings page</a> '
                     . 'to display tweets.</p>';
             $html .= "</div>";
             
@@ -1102,33 +1094,33 @@ class Rc_Myctf {
      * @param   string  $display_style  Display format
      * @return  string  $html       HTML for the tweet header divs
      */
-    public static function rc_myctf_get_tweet_opening_div_wraps_html( $disp_style ) {
+    public static function rsfft_get_tweet_opening_div_wraps_html( $disp_style ) {
         
         /*
          * We need the divs in the following format.
          * 
          * //For Listing
-         * <div class="rc_myctf_tweets_wrap display_list cols_1">
+         * <div class="rsfft_tweets_wrap display_list cols_1">
          * <div id="listing_tweets_post_id_5_1 " class= "listing_tweets_post_id_5_1 tweets_container">
          * 
          * //For 2 column Slider
-         * <div id="slider_post_id_6029_2" class="rc_myctf_tweets_wrap display_slider_2_col slider cols_3">
+         * <div id="slider_post_id_6029_2" class="rsfft_tweets_wrap display_slider_2_col slider cols_3">
          * <div id="listing_tweets_post_id_6029_2" class="listing_tweets_post_id_6029_2 slides-container tweets_container">
          * 
          * //For 1 column Slider
-         * <div id="slider_post_id_6052_2" class="rc_myctf_tweets_wrap display_slider_1_col slider cols_3">
+         * <div id="slider_post_id_6052_2" class="rsfft_tweets_wrap display_slider_1_col slider cols_3">
          * <div id="listing_tweets_post_id_6052_2 " class="listing_tweets_post_id_6052_2 slides-container tweets_container">
          * 
          * //For Masonry
-         * <div class="rc_myctf_tweets_wrap display_masonry cols_3">
+         * <div class="rsfft_tweets_wrap display_masonry cols_3">
          * <div id="listing_tweets_post_id_6029_1 " class="listing_tweets_post_id_6029_1 tweets_container">
          * 
          */
         
         
         $display_style = sanitize_text_field( $disp_style ); 
-        $number_of_tweets_in_row = intval( Rc_Myctf::$merged_scode_atts[ 'number_of_tweets_in_row' ] );     
-        $id = sanitize_text_field( Rc_Myctf::$scode_atts[ 'id' ] );
+        $number_of_tweets_in_row = intval( Rsfft::$merged_scode_atts[ 'number_of_tweets_in_row' ] );     
+        $id = sanitize_text_field( Rsfft::$scode_atts[ 'id' ] );
         
         $slider_div_id = '';
         $slider_div_id_class = '';
@@ -1146,7 +1138,7 @@ class Rc_Myctf {
              *  Store inidvidual sliders/carousels and their settings as key => value pair
              * 'slider_' . $id  =>  $settings
              */
-            Rc_Myctf::rc_myctf_store_slider_n_carousel_settings_in_array( $id );
+            Rsfft::rsfft_store_slider_n_carousel_settings_in_array( $id );
             
         }
         
@@ -1154,7 +1146,7 @@ class Rc_Myctf {
         
         /* Starts tweets outer wrap */
         $html = "<div" . $slider_div_id . " ";
-        $html .= "class='rc_myctf_tweets_wrap ";
+        $html .= "class='rsfft_tweets_wrap ";
         $html .= $display_style;
         $html .= $slider_div_class . " ";
         $html .= "cols_" . $number_of_tweets_in_row . "'>";
@@ -1168,7 +1160,7 @@ class Rc_Myctf {
         
         return $html;
         
-    }//ends rc_myctf_get_tweet_opening_div_wraps_html
+    }//ends rsfft_get_tweet_opening_div_wraps_html
 
 
 
@@ -1181,9 +1173,9 @@ class Rc_Myctf {
      * 
      * @return  Boolen  TRUE | False
      */
-    public static function rc_myctf_check_api_keys() {
+    public static function rsfft_check_api_keys() {
         
-        $options_settings = get_option( 'rc_myctf_settings_options' );
+        $options_settings = get_option( 'rsfft_settings_options' );
         $app_consumer_key = isset( $options_settings[ 'app_consumer_key' ] ) ? wp_strip_all_tags( $options_settings[ 'app_consumer_key' ] ) : '';
         $app_consumer_secret = isset( $options_settings[ 'app_consumer_secret' ] ) ? wp_strip_all_tags( $options_settings[ 'app_consumer_secret' ] ) : '';
         
@@ -1210,25 +1202,25 @@ class Rc_Myctf {
         /* since conditions are not met */
         return FALSE;
         
-    }//ends function rc_myctf_check_api_keys
+    }//ends function rsfft_check_api_keys
     
     
     
     /* 
-     * Localizes the js file with handle 'rc_myctf_slides'
+     * Localizes the js file with handle 'rsfft_slides'
      * This function sends the ids of the outer div of all shortcodes 
      * that are sliders to the js
      * 
-     * All such sliders are stored in the array Rc_Myctf::$scodes_slides
+     * All such sliders are stored in the array Rsfft::$scodes_slides
      * 
      * @since 1.0
      * @access public
      * 
      */
-    public static function rc_myctf_slides_localize_script() {
+    public static function rsfft_slides_localize_script() {
 
         /* holds the ids of the parent divs of each of the shortcodes on page that are sliders */
-        $scodes_slides = Rc_Myctf::$scodes_slides;
+        $scodes_slides = Rsfft::$scodes_slides;
         
         /*
          * count the total sliders
@@ -1241,15 +1233,15 @@ class Rc_Myctf {
             'total' => $total_scode_sliders
         );
         
-        //wp_localize_script( 'rc_myctf_slides', 'rc_myctf_slides_args', $scodes_slides );
-        //wp_localize_script( 'rc_myctf_slides', 'rc_myctf_total_sliders', $total_sliders_args );
+        //wp_localize_script( 'rsfft_slides', 'rsfft_slides_args', $scodes_slides );
+        //wp_localize_script( 'rsfft_slides', 'rsfft_total_sliders', $total_sliders_args );
         
-    }//ends rc_myctf_slides_localize_script
+    }//ends rsfft_slides_localize_script
 
     
     
     /* 
-     * Localizes the main frontend js file with handle 'rc_myctf_scripts'
+     * Localizes the main frontend js file with handle 'rsfft_scripts'
      * This function sends the parameters needed by the owl initialize function
      * to control the different aspects of owl sliders and owl carousels
      * 
@@ -1258,21 +1250,21 @@ class Rc_Myctf {
      * @access public
      * 
      */
-    public static function rc_myctf_owl_slides_carousel_localize_script() {
+    public static function rsfft_owl_slides_carousel_localize_script() {
         
         /**
          * When the page is rendered, all sliders/carousels with their individual settings
-         * were stored in Rc_Myctf::$scodes_slides as key => value pair.
+         * were stored in Rsfft::$scodes_slides as key => value pair.
          * 
          * We will extract the slider ids and corresponding settings value and pass them to the 
          * JS that is initializing each one of them.
          */      
         
         //if no sliders or carousels, then simply return
-        if ( count( Rc_Myctf::$scodes_slides ) < 1 ) { return; }
+        if ( count( Rsfft::$scodes_slides ) < 1 ) { return; }
         
         //extract the slider details in a variable
-        $scodes_slides = Rc_Myctf::$scodes_slides;
+        $scodes_slides = Rsfft::$scodes_slides;
         
         //print_r($scodes_slides);
         //wp_die();
@@ -1331,7 +1323,7 @@ class Rc_Myctf {
                     
             );
 
-            wp_localize_script( 'rc_myctf_scripts', 'rc_myctf_owl_options_' . $i, $owl_slider_options );
+            wp_localize_script( 'rsfft_scripts', 'rsfft_owl_options_' . $i, $owl_slider_options );
             
         }//ends foreach
         
@@ -1340,9 +1332,9 @@ class Rc_Myctf {
         );
         
         //make the total slider number value available to the main JS
-        wp_localize_script( 'rc_myctf_scripts', 'rc_myctf_total_owl_sliders', $total_sliders_args );  
+        wp_localize_script( 'rsfft_scripts', 'rsfft_total_owl_sliders', $total_sliders_args );  
         
-    }//ends rc_myctf_slides_localize_script
+    }//ends rsfft_slides_localize_script
 
     
     
@@ -1357,7 +1349,7 @@ class Rc_Myctf {
      * 
      * @return string   Displayable tweet
      */
-    public static function rc_myctf_get_displayable_tweet( $tweet ) {
+    public static function rsfft_get_displayable_tweet( $tweet ) {
         
         //this will later be changed with option that the user can choose
         $full_text = true;
@@ -1371,14 +1363,14 @@ class Rc_Myctf {
         
 
         /* Sometimes, Tweets include links in the text part of the tweet object itself. Remove those URLs */
-        $text_without_url = Rc_Myctf::rc_myctf_remove_url_in_tweet_sent_as_text( $text_with_url );
+        $text_without_url = Rsfft::rsfft_remove_url_in_tweet_sent_as_text( $text_with_url );
 
         /* Tweets are received without any links. This functions relinks them */
-        $text = Rc_Myctf::rc_myctf_add_links_to_tweet_entities( $tweet, $text_without_url );
+        $text = Rsfft::rsfft_add_links_to_tweet_entities( $tweet, $text_without_url );
 
         return $text;
         
-    }//ends rc_myctf_get_displayable_tweet
+    }//ends rsfft_get_displayable_tweet
     
     
     
@@ -1392,7 +1384,7 @@ class Rc_Myctf {
      * 
      * @return string   Displayable tweet
      */
-    public static function rc_myctf_store_slider_n_carousel_settings_in_array( $id ){
+    public static function rsfft_store_slider_n_carousel_settings_in_array( $id ){
         
         //Create the slider id
         $slider_id = 'slider_' . $id;
@@ -1401,17 +1393,17 @@ class Rc_Myctf {
         $settings[] = '';
         
         //Extract the merged slider/carousel settings value
-        $items = intval( Rc_Myctf::$merged_scode_atts[ 'items' ] );
-        $auto_height = wp_strip_all_tags( Rc_Myctf::$merged_scode_atts[ 'auto_height' ] );
-        $nav_dots = wp_strip_all_tags( Rc_Myctf::$merged_scode_atts[ 'nav_dots' ] );
-        $nav_arrows = wp_strip_all_tags( Rc_Myctf::$merged_scode_atts[ 'nav_arrows' ] );
-        $autoplay = wp_strip_all_tags( Rc_Myctf::$merged_scode_atts[ 'autoplay' ] );
-        $transition_interval = intval( Rc_Myctf::$merged_scode_atts[ 'transition_interval' ] );
-        $transition_speed = intval( Rc_Myctf::$merged_scode_atts[ 'transition_speed' ] );
-        $pause_on_hover = wp_strip_all_tags( Rc_Myctf::$merged_scode_atts[ 'pause_on_hover' ] );
-        $loop = wp_strip_all_tags( Rc_Myctf::$merged_scode_atts[ 'loop' ] );
+        $items = intval( Rsfft::$merged_scode_atts[ 'items' ] );
+        $auto_height = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'auto_height' ] );
+        $nav_dots = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'nav_dots' ] );
+        $nav_arrows = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'nav_arrows' ] );
+        $autoplay = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'autoplay' ] );
+        $transition_interval = intval( Rsfft::$merged_scode_atts[ 'transition_interval' ] );
+        $transition_speed = intval( Rsfft::$merged_scode_atts[ 'transition_speed' ] );
+        $pause_on_hover = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'pause_on_hover' ] );
+        $loop = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'loop' ] );
         
-        $display_style = wp_strip_all_tags( Rc_Myctf::$merged_scode_atts[ 'display_style' ] );
+        $display_style = wp_strip_all_tags( Rsfft::$merged_scode_atts[ 'display_style' ] );
         
         $settings = array(
             'items' => $items,
@@ -1427,10 +1419,10 @@ class Rc_Myctf {
         );
         
         //store the values now
-        Rc_Myctf::$scodes_slides[ $slider_id ] = $settings;
+        Rsfft::$scodes_slides[ $slider_id ] = $settings;
         
         
-    }//ends rc_myctf_store_slider_n_carousel_settings_in_array
+    }//ends rsfft_store_slider_n_carousel_settings_in_array
     
     
 }//ends class

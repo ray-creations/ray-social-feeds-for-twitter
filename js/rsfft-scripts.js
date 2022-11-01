@@ -63,12 +63,12 @@ jQuery(document).ready(function($){
 jQuery(document).ready(function($){
     
     //get the total number of sliders
-    var totalSliders = rc_myctf_total_owl_sliders.total;
+    var totalSliders = rsfft_total_owl_sliders.total;
     //alert ( 'total sliders: ' + totalSliders );
     
     for ( i = 1; i <= totalSliders; i++ ) {
         
-        options = eval( "rc_myctf_owl_options_" + i );
+        options = eval( "rsfft_owl_options_" + i );
         
         //var nav = parseInt( options['nav'] );
         //alert( nav );
